@@ -40,6 +40,27 @@ app.use(cors({
 // --- Body parser ---
 app.use(express.json({ limit: '1kb' }));
 
+// --- Block directory access ---
+app.use((req, res, next) => {
+  if (req.path !== '/' && req.path.endsWith('/')) {
+    return res.status(403).json({ error: 'Accès interdit' });
+  }
+  next();
+});
+
+// --- Track page visits by IP ---
+app.use((req, res, next) => {
+  if (req.method === 'GET' && req.path === '/') {
+    const ip = req.ip;
+    const userAgent = req.get('User-Agent') || null;
+    pool.query(
+      'INSERT INTO visits (ip, path, user_agent) VALUES ($1, $2, $3)',
+      [ip, '/', userAgent]
+    ).catch(err => console.error('Visit tracking error:', err.message));
+  }
+  next();
+});
+
 // --- Static files ---
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -173,6 +194,34 @@ app.get('/api/subscribers/count', adminLimiter, requireAdmin, async (req, res) =
     return res.json({ count: result.rows[0].count });
   } catch (err) {
     console.error('Count subscribers error:', err.message);
+    return res.status(500).json({ error: 'Une erreur est survenue.' });
+  }
+});
+
+// Admin: visits by IP
+app.get('/api/visits', adminLimiter, requireAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT ip, COUNT(*)::int AS visits, MAX(created_at) AS last_visit
+      FROM visits
+      GROUP BY ip
+      ORDER BY visits DESC
+    `);
+    return res.json(result.rows);
+  } catch (err) {
+    console.error('List visits error:', err.message);
+    return res.status(500).json({ error: 'Une erreur est survenue.' });
+  }
+});
+
+// Admin: visit counts (total + unique IPs)
+app.get('/api/visits/count', adminLimiter, requireAdmin, async (req, res) => {
+  try {
+    const total = await pool.query('SELECT COUNT(*)::int AS count FROM visits');
+    const unique = await pool.query('SELECT COUNT(DISTINCT ip)::int AS count FROM visits');
+    return res.json({ total: total.rows[0].count, unique_ips: unique.rows[0].count });
+  } catch (err) {
+    console.error('Count visits error:', err.message);
     return res.status(500).json({ error: 'Une erreur est survenue.' });
   }
 });

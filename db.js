@@ -20,6 +20,15 @@ async function initDB() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
     `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS visits (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        ip VARCHAR(45) NOT NULL,
+        path VARCHAR(255) NOT NULL,
+        user_agent TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
     console.log('Database initialized successfully');
   } catch (err) {
     console.error('Database initialization failed:', err.message);
