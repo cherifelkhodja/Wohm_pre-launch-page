@@ -496,14 +496,15 @@ footer a:hover{
   var toggle = document.getElementById('theme-toggle');
   var icon = document.getElementById('theme-icon');
   var logo = document.getElementById('logo-img');
+  if (!toggle || !icon) return;
   var stored = localStorage.getItem('theme');
   if (stored === 'light' || (!stored && window.matchMedia('(prefers-color-scheme: light)').matches)) {
     document.documentElement.classList.add('light');
   }
   function updateUI() {
     var isLight = document.documentElement.classList.contains('light');
-    icon.textContent = isLight ? '\u{1F319}' : '\u{2600}\u{FE0F}';
-    logo.src = isLight ? '/assets/Wohm%20-%20Light.png' : '/assets/Wohm%20-%20Dark.png';
+    icon.textContent = isLight ? '\u{1F319}' : '\u{2600}\uFE0F';
+    if (logo) logo.src = isLight ? '/assets/Wohm%20-%20Light.png' : '/assets/Wohm%20-%20Dark.png';
   }
   updateUI();
   toggle.addEventListener('click', function() {
@@ -512,6 +513,8 @@ footer a:hover{
     updateUI();
   });
 })();
+</script>
+<script>
 // ===== COUNTDOWN =====
 function updateCountdown() {
   var target = new Date('2026-07-06T09:00:00+02:00');
