@@ -104,33 +104,7 @@ section{
   position:relative;z-index:2;
 }
 .hero-tagline strong{color:var(--blue);font-weight:500}
-/* ====== BEAT 2 : STORY ====== */
-.story{background:var(--surface)}
-.story-line{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(36px,7vw,90px);
-  line-height:1.05;text-align:center;
-  letter-spacing:0.02em;
-  opacity:0;transform:translateY(40px);
-  transition:opacity 1s ease,transform 1s ease;
-}
-.story-line.visible{opacity:1;transform:translateY(0)}
-.story-line.accent{color:var(--blue)}
-.story-line.muted{
-  color:var(--silver);
-  font-family:'Outfit',sans-serif;
-  font-weight:300;
-  font-size:clamp(18px,2.8vw,32px);
-  letter-spacing:0.04em;
-}
-.story-divider{
-  width:60px;height:2px;
-  background:var(--blue);
-  margin:48px auto 0;
-  opacity:0;transform:scaleX(0);
-  transition:opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s;
-}
-.story-divider.visible{opacity:1;transform:scaleX(1)}
+
 /* ====== BEAT 3 : REVEAL ====== */
 .reveal{
   background:var(--deep);
@@ -370,15 +344,7 @@ footer a:hover{
     L'exigence de la <strong>F1</strong> au service de votre véhicule électrique.
   </p>
 </section>
-<!-- ========== BEAT 2 : STORY ========== -->
-<section class="story">
-  <div style="display:flex;flex-direction:column;gap:clamp(24px,4vw,48px);align-items:center">
-    <div class="story-line" data-sr>13 ans de Formule 1.</div>
-    <div class="story-line accent" data-sr>Alpine. Renault Sport. RedBull.</div>
-    <div class="story-line muted" data-sr>Maintenant, au service de vos véhicules électriques.</div>
-    <div class="story-divider" data-sr></div>
-  </div>
-</section>
+
 <!-- ========== BEAT 3 : REVEAL ========== -->
 <section class="reveal">
   <div class="reveal-grid"></div>
@@ -422,9 +388,7 @@ footer a:hover{
 </section>
 <!-- ========== FOOTER ========== -->
 <footer>
-  &copy; 2025 WOHM SAS — Île-de-France
-  <br><br>
-  <a href="#">Mentions légales</a>
+  &copy; 2026 WOHM SAS — <a href="mailto:contact@wohm.fr">contact@wohm.fr</a>
 </footer>
 <script>
 // ===== COUNTDOWN =====
