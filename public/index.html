@@ -267,7 +267,6 @@ section{
 .email-field{
   position:relative;flex:1;
 }
-.vehicle-field{flex:2}
 .email-field input{
   width:100%;
   background:rgba(255,255,255,0.03);
@@ -341,7 +340,7 @@ footer a:hover{
 }
 /* ====== RESPONSIVE ====== */
 @media(min-width:640px){
-  .submit-btn{width:auto;padding:18px 40px}
+  .submit-btn{padding:18px 40px}
 }
 @media(max-width:639px){
   .form-row{flex-direction:column}
@@ -411,13 +410,11 @@ footer a:hover{
       <div class="email-field">
         <input type="email" id="email-input" placeholder="votre@email.com" required>
       </div>
-    </div>
-    <div class="form-row">
-      <div class="email-field vehicle-field">
-        <input type="text" id="vehicule-input" placeholder="Marque et modèle de votre véhicule (ex: Renault ZOE)">
+      <div class="email-field">
+        <input type="text" id="vehicule-input" placeholder="Véhicule (ex: Tesla Model 3)">
       </div>
-      <button class="submit-btn" onclick="handleSubmit()">M'INSCRIRE</button>
     </div>
+    <button class="submit-btn" onclick="handleSubmit()">M'INSCRIRE</button>
   </div>
   <div class="form-success" id="form-success">
     &#10003; Vous serez parmi les premiers informés.
