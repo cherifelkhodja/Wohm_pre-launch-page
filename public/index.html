@@ -28,6 +28,64 @@
   --silver:#94A3B8;
   --white:#F1F5F9;
 }
+/* ====== LIGHT MODE ====== */
+@media(prefers-color-scheme:light){
+  :root{
+    --deep:#F8FAFC;
+    --surface:#FFFFFF;
+    --surface-up:#F1F5F9;
+    --silver:#475569;
+    --white:#0F172A;
+    --blue:#1D8EC7;
+    --blue-glow:rgba(29,142,199,0.25);
+  }
+  body::after{opacity:0.02}
+  .hero-bg{
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 40%, rgba(29,142,199,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 80% at 80% 20%, rgba(29,142,199,0.04) 0%, transparent 60%);
+  }
+  .hero-sweep{
+    background:conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(29,142,199,0.04) 40deg, transparent 80deg);
+  }
+  .racing-lines{opacity:0.08}
+  .logo-glow{
+    background:radial-gradient(circle,rgba(29,142,199,0.08) 0%,transparent 70%);
+  }
+  .reveal-grid{
+    background-image:
+      linear-gradient(rgba(29,142,199,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(29,142,199,0.06) 1px, transparent 1px);
+  }
+  .reveal-ring{
+    border-color:rgba(29,142,199,0.1);
+    box-shadow:0 0 80px rgba(29,142,199,0.04) inset;
+  }
+  .cta-section{
+    background:var(--surface);
+    border-top:1px solid rgba(29,142,199,0.08);
+  }
+  .email-field input{
+    background:rgba(0,0,0,0.02);
+    border-color:rgba(71,85,105,0.2);
+    color:var(--white);
+  }
+  .email-field input::placeholder{color:rgba(71,85,105,0.4)}
+  .email-field input:focus{
+    border-color:var(--blue);
+    box-shadow:0 0 0 3px rgba(29,142,199,0.1), 0 0 20px rgba(29,142,199,0.05);
+  }
+  .submit-btn{color:#FFFFFF}
+  .submit-btn:hover{box-shadow:0 8px 30px var(--blue-glow)}
+  .form-success{
+    border-color:rgba(0,180,120,0.3);
+    background:rgba(0,180,120,0.05);
+    color:#059669;
+  }
+  footer{color:rgba(71,85,105,0.4)}
+  footer a{color:rgba(71,85,105,0.5)}
+  footer a:hover{color:rgba(71,85,105,0.7)}
+}
 html{scroll-behavior:smooth;overflow-x:hidden}
 body{
   background:var(--deep);
@@ -351,7 +409,10 @@ footer a:hover{
   </div>
   <div class="logo-wrapper">
     <div class="logo-glow"></div>
-    <img class="logo-img" src="/assets/Wohm%20-%20Dark.png" alt="WOHM — L'exigence de la F1 pour la réparation de votre véhicule électrifié">
+    <picture>
+      <source srcset="/assets/Wohm%20-%20Light.png" media="(prefers-color-scheme: light)">
+      <img class="logo-img" src="/assets/Wohm%20-%20Dark.png" alt="WOHM">
+    </picture>
   </div>
   <p class="hero-tagline">
     L'exigence de la <strong>F1</strong> au service de votre véhicule électrique.
@@ -363,7 +424,7 @@ footer a:hover{
   <div class="reveal-grid"></div>
   <div class="reveal-ring"></div>
   <h1 class="reveal-headline" data-sr>
-    Un centre d'ingénierie dédié aux <em>véhicules électriques</em>. Pas un garage.
+    Un centre d'ingénierie dédié à la <em>réparation de vos véhicules électriques</em>.
   </h1>
   <p class="reveal-sub" data-sr>Île-de-France</p>
 </section>
