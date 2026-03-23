@@ -160,12 +160,16 @@ app.post('/api/subscribe', subscribeLimiter, async (req, res) => {
     const vehicule = req.body.vehicule ? req.body.vehicule.trim() : null;
     const ip = req.ip;
 
-    await pool.query(
+    const result = await pool.query(
       `INSERT INTO subscribers (prenom, email, vehicule, ip)
        VALUES ($1, $2, $3, $4)
        ON CONFLICT (email) DO NOTHING`,
       [prenom, email, vehicule, ip]
     );
+
+    if (result.rowCount === 0) {
+      return res.status(409).json({ error: 'Cet email est déjà inscrit.' });
+    }
 
     return res.json({ ok: true });
   } catch (err) {
