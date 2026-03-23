@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WOHM — L'exigence de la F1 pour la réparation de votre véhicule électrifié</title>
-<meta name="description" content="WOHM — L'exigence de la F1 pour la réparation de votre véhicule électrifié. Ouverture Juillet 2025 en Île-de-France.">
+<title>WOHM — L'exigence de la F1 au service de votre véhicule électrique</title>
+<meta name="description" content="WOHM — L'exigence de la F1 au service de votre véhicule électrique. Ouverture Juillet 2026 en Île-de-France.">
 <!-- OG Meta Tags -->
-<meta property="og:title" content="WOHM — L'exigence de la F1 pour la réparation de votre véhicule électrifié">
-<meta property="og:description" content="Un centre d'ingénierie dédié aux véhicules électriques. Pas un garage. Ouverture Juillet 2025 en Île-de-France.">
+<meta property="og:title" content="WOHM — L'exigence de la F1 au service de votre véhicule électrique">
+<meta property="og:description" content="Un centre d'ingénierie dédié aux véhicules électriques. Pas un garage. Ouverture Juillet 2026 en Île-de-France.">
 <meta property="og:image" content="https://wohm.fr/og-image.png">
 <meta property="og:url" content="https://wohm.fr">
 <meta property="og:type" content="website">
@@ -313,11 +313,24 @@ footer a:hover{
   color:rgba(148,163,184,0.5);
 }
 /* ====== RESPONSIVE ====== */
-@media(min-width:640px){
-  .submit-btn{padding:18px 40px}
-}
 @media(max-width:639px){
+  section{padding:40px 16px;min-height:auto;min-height:unset}
+  .hero{min-height:100vh;min-height:100dvh}
+  .hero-tagline{font-size:12px;letter-spacing:0.2em;padding:0 8px}
+  .logo-wrapper{margin-bottom:32px}
+  .logo-img{width:clamp(220px,70vw,320px)}
+  .logo-glow{width:200px;height:200px}
+  .reveal-headline{font-size:clamp(32px,10vw,56px);padding:0 8px}
+  .reveal-sub{font-size:14px;letter-spacing:0.15em}
+  .reveal-ring{width:300px;height:300px}
+  .cta-section{padding:40px 16px 60px}
+  .cta-countdown{margin-bottom:32px}
+  .cd-num{min-width:50px}
+  .cta-headline{font-size:clamp(28px,8vw,48px);margin-bottom:12px}
+  .email-form{max-width:100%}
   .form-row{flex-direction:column}
+  .email-field input{padding:16px;font-size:15px}
+  .submit-btn{padding:16px;font-size:18px}
 }
 /* ====== SCROLL REVEAL GENERIC ====== */
 .sr{opacity:0;transform:translateY(30px);transition:opacity 0.8s ease,transform 0.8s ease}
