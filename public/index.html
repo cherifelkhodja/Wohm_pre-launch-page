@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WOHM — L'exigence de la F1 pour la réparation de votre véhicule électrifié</title>
+<meta name="description" content="WOHM — L'exigence de la F1 pour la réparation de votre véhicule électrifié. Ouverture Juillet 2025 en Île-de-France.">
+<!-- OG Meta Tags -->
+<meta property="og:title" content="WOHM — L'exigence de la F1 pour la réparation de votre véhicule électrifié">
+<meta property="og:description" content="Un centre d'ingénierie dédié aux véhicules électriques. Pas un garage. Ouverture Juillet 2025 en Île-de-France.">
+<meta property="og:image" content="https://wohm.fr/og-image.png">
+<meta property="og:url" content="https://wohm.fr">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<!-- Favicon -->
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#2EA3E0;
+  --blue-glow:rgba(46,163,224,0.4);
+  --deep:#060A13;
+  --surface:#0B1120;
+  --surface-up:#111827;
+  --silver:#94A3B8;
+  --white:#F1F5F9;
+}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{
+  background:var(--deep);
+  color:var(--white);
+  font-family:'Outfit',sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+/* ====== NOISE + GRAIN ====== */
+body::after{
+  content:'';position:fixed;inset:0;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:9999;
+}
+/* ====== GLOBAL SECTION ====== */
+section{
+  min-height:100vh;min-height:100dvh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  position:relative;padding:60px 24px;
+}
+/* ====== BEAT 1 : HERO ====== */
+.hero{overflow:hidden}
+.hero-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(46,163,224,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 80% at 80% 20%, rgba(46,163,224,0.04) 0%, transparent 60%);
+}
+/* Animated light sweep */
+.hero-sweep{
+  position:absolute;top:-50%;left:-50%;
+  width:200%;height:200%;
+  background:conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(46,163,224,0.03) 40deg, transparent 80deg);
+  animation:sweep 20s linear infinite;
+  pointer-events:none;
+}
+@keyframes sweep{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+/* Horizontal racing lines */
+.racing-lines{
+  position:absolute;inset:0;overflow:hidden;opacity:0.12;pointer-events:none;
+}
+.racing-line{
+  position:absolute;height:1px;
+  background:linear-gradient(90deg, transparent, var(--blue), transparent);
+  animation:race linear infinite;
+}
+.racing-line:nth-child(1){top:20%;width:300px;animation-duration:4s;left:-300px}
+.racing-line:nth-child(2){top:45%;width:200px;animation-duration:3s;left:-200px;animation-delay:1.5s}
+.racing-line:nth-child(3){top:70%;width:400px;animation-duration:5s;left:-400px;animation-delay:0.8s}
+.racing-line:nth-child(4){top:35%;width:150px;animation-duration:3.5s;left:-150px;animation-delay:2.2s}
+.racing-line:nth-child(5){top:85%;width:250px;animation-duration:4.5s;left:-250px;animation-delay:3s}
+@keyframes race{from{transform:translateX(0)}to{transform:translateX(calc(100vw + 600px))}}
+/* Logo */
+.logo-wrapper{margin-bottom:48px;position:relative;z-index:2}
+.logo-img{
+  width:clamp(280px,40vw,480px);height:auto;
+}
+/* Pulse glow behind logo */
+.logo-glow{
+  position:absolute;top:50%;left:50%;
+  width:300px;height:300px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(46,163,224,0.12) 0%,transparent 70%);
+  animation:pulse-glow 4s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes pulse-glow{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:1}50%{transform:translate(-50%,-50%) scale(1.3);opacity:0.5}}
+.hero-tagline{
+  font-family:'Outfit',sans-serif;
+  font-weight:300;font-size:clamp(11px,1.3vw,15px);
+  letter-spacing:0.35em;text-transform:uppercase;
+  color:var(--silver);text-align:center;
+  position:relative;z-index:2;
+}
+.hero-tagline strong{color:var(--blue);font-weight:500}
+/* ====== BEAT 2 : STORY ====== */
+.story{background:var(--surface)}
+.story-line{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(36px,7vw,90px);
+  line-height:1.05;text-align:center;
+  letter-spacing:0.02em;
+  opacity:0;transform:translateY(40px);
+  transition:opacity 1s ease,transform 1s ease;
+}
+.story-line.visible{opacity:1;transform:translateY(0)}
+.story-line.accent{color:var(--blue)}
+.story-line.muted{
+  color:var(--silver);
+  font-family:'Outfit',sans-serif;
+  font-weight:300;
+  font-size:clamp(18px,2.8vw,32px);
+  letter-spacing:0.04em;
+}
+.story-divider{
+  width:60px;height:2px;
+  background:var(--blue);
+  margin:48px auto 0;
+  opacity:0;transform:scaleX(0);
+  transition:opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s;
+}
+.story-divider.visible{opacity:1;transform:scaleX(1)}
+/* ====== BEAT 3 : REVEAL ====== */
+.reveal{
+  background:var(--deep);
+  overflow:hidden;
+}
+/* Grid pattern background */
+.reveal-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(46,163,224,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(46,163,224,0.04) 1px, transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 70%);
+  -webkit-mask-image:radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 70%);
+  pointer-events:none;
+}
+.reveal-headline{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(40px,8vw,110px);
+  line-height:0.95;text-align:center;
+  letter-spacing:0.01em;
+  position:relative;z-index:2;
+  max-width:900px;
+  opacity:0;transform:scale(0.95);
+  transition:opacity 1.2s ease,transform 1.2s ease;
+}
+.reveal-headline.visible{opacity:1;transform:scale(1)}
+.reveal-headline em{
+  font-style:normal;
+  background:linear-gradient(135deg, var(--blue), #00E5A0);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.reveal-date{
+  margin-top:32px;
+  font-weight:300;font-size:clamp(13px,1.5vw,18px);
+  letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--silver);
+  position:relative;z-index:2;
+  opacity:0;transform:translateY(20px);
+  transition:opacity 1s ease 0.4s, transform 1s ease 0.4s;
+}
+.reveal-date.visible{opacity:1;transform:translateY(0)}
+.reveal-sub{
+  margin-top:24px;
+  font-weight:400;font-size:clamp(14px,1.6vw,20px);
+  letter-spacing:0.25em;text-transform:uppercase;
+  color:var(--silver);
+  position:relative;z-index:2;
+  opacity:0;transform:translateY(20px);
+  transition:opacity 1s ease 0.4s, transform 1s ease 0.4s;
+}
+.reveal-sub.visible{opacity:1;transform:translateY(0)}
+/* Glow ring behind headline */
+.reveal-ring{
+  position:absolute;top:50%;left:50%;
+  width:500px;height:500px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  border:1px solid rgba(46,163,224,0.08);
+  box-shadow:0 0 80px rgba(46,163,224,0.06) inset;
+  pointer-events:none;
+}
+/* ====== BEAT 4 : CTA ====== */
+.cta-section{
+  background:var(--surface);
+  border-top:1px solid rgba(46,163,224,0.06);
+}
+/* Countdown */
+.cta-countdown{
+  margin-bottom:48px;text-align:center;
+  opacity:0;transform:translateY(30px);
+  transition:opacity 1s ease,transform 1s ease;
+}
+.cta-countdown.visible{opacity:1;transform:translateY(0)}
+.countdown-label{
+  font-family:'Outfit',sans-serif;
+  font-weight:300;font-size:12px;
+  letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--silver);margin-bottom:16px;
+}
+.countdown-row{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+}
+.cd-block{display:flex;flex-direction:column;align-items:center}
+.cd-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(48px,8vw,72px);
+  color:var(--white);line-height:1;
+  min-width:70px;text-align:center;
+}
+.cd-unit{
+  font-family:'Outfit',sans-serif;
+  font-weight:300;font-size:10px;
+  letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--silver);margin-top:4px;
+}
+.cd-sep{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(32px,5vw,48px);
+  color:var(--blue);
+  align-self:flex-start;padding-top:6px;
+}
+.cta-headline{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(36px,6vw,72px);
+  letter-spacing:0.02em;text-align:center;
+  line-height:1;
+  margin-bottom:16px;
+  opacity:0;transform:translateY(30px);
+  transition:opacity 1s ease,transform 1s ease;
+}
+.cta-headline.visible{opacity:1;transform:translateY(0)}
+.cta-highlight{color:var(--blue)}
+.cta-sub{
+  font-family:'Outfit',sans-serif;
+  font-weight:300;font-size:clamp(14px,1.4vw,17px);
+  color:var(--silver);text-align:center;
+  margin-bottom:40px;
+  opacity:0;transform:translateY(20px);
+  transition:opacity 1s ease 0.2s,transform 1s ease 0.2s;
+}
+.cta-sub.visible{opacity:1;transform:translateY(0)}
+.email-form{
+  display:flex;flex-direction:column;
+  gap:12px;width:100%;max-width:520px;
+  opacity:0;transform:translateY(20px);
+  transition:opacity 1s ease 0.3s, transform 1s ease 0.3s;
+}
+.email-form.visible{opacity:1;transform:translateY(0)}
+.form-row{
+  display:flex;gap:12px;width:100%;
+}
+.email-field{
+  position:relative;flex:1;
+}
+.vehicle-field{flex:2}
+.email-field input{
+  width:100%;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(148,163,184,0.15);
+  border-radius:12px;
+  padding:18px 20px;
+  font-family:'Outfit',sans-serif;
+  font-size:16px;font-weight:300;
+  color:var(--white);
+  outline:none;
+  transition:border-color 0.4s, box-shadow 0.4s;
+}
+.email-field input::placeholder{color:rgba(148,163,184,0.35)}
+.email-field input:focus{
+  border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(46,163,224,0.1), 0 0 30px rgba(46,163,224,0.08);
+}
+.submit-btn{
+  width:100%;padding:18px;
+  background:var(--blue);
+  border:none;border-radius:12px;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:20px;letter-spacing:0.08em;
+  color:var(--deep);cursor:pointer;
+  position:relative;overflow:hidden;
+  transition:transform 0.2s, box-shadow 0.3s;
+}
+.submit-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 40px var(--blue-glow);
+}
+/* Button shine effect */
+.submit-btn::after{
+  content:'';position:absolute;
+  top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transition:left 0.6s;
+}
+.submit-btn:hover::after{left:150%}
+.form-note{
+  font-size:12px;font-weight:300;
+  color:rgba(148,163,184,0.3);
+  text-align:center;letter-spacing:0.1em;
+}
+/* Success state */
+.form-success{
+  display:none;
+  text-align:center;
+  padding:20px;
+  border:1px solid rgba(0,229,160,0.2);
+  border-radius:12px;
+  background:rgba(0,229,160,0.05);
+  color:#00E5A0;
+  font-weight:500;font-size:16px;
+}
+/* ====== FOOTER ====== */
+footer{
+  padding:40px 24px;
+  text-align:center;
+  color:rgba(148,163,184,0.2);
+  font-size:11px;letter-spacing:0.1em;
+  font-weight:300;
+}
+footer a{
+  color:rgba(148,163,184,0.3);
+  text-decoration:none;
+  transition:color 0.3s;
+}
+footer a:hover{
+  color:rgba(148,163,184,0.5);
+}
+/* ====== RESPONSIVE ====== */
+@media(min-width:640px){
+  .submit-btn{width:auto;padding:18px 40px}
+}
+@media(max-width:639px){
+  .form-row{flex-direction:column}
+}
+/* ====== SCROLL REVEAL GENERIC ====== */
+.sr{opacity:0;transform:translateY(30px);transition:opacity 0.8s ease,transform 0.8s ease}
+.sr.visible{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<!-- ========== BEAT 1 : HERO ========== -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-sweep"></div>
+  <div class="racing-lines">
+    <div class="racing-line"></div>
+    <div class="racing-line"></div>
+    <div class="racing-line"></div>
+    <div class="racing-line"></div>
+    <div class="racing-line"></div>
+  </div>
+  <div class="logo-wrapper">
+    <div class="logo-glow"></div>
+    <img class="logo-img" src="/assets/wohm_logo_dark_transparent.png" alt="WOHM — L'exigence de la F1 pour la réparation de votre véhicule électrifié">
+  </div>
+  <p class="hero-tagline">
+    L'exigence de la <strong>F1</strong> pour la réparation de votre véhicule électrifié.
+  </p>
+</section>
+<!-- ========== BEAT 2 : STORY ========== -->
+<section class="story">
+  <div style="display:flex;flex-direction:column;gap:clamp(24px,4vw,48px);align-items:center">
+    <div class="story-line" data-sr>13 ans de Formule 1.</div>
+    <div class="story-line accent" data-sr>Alpine. Renault Sport. RedBull.</div>
+    <div class="story-line muted" data-sr>Maintenant, au service de vos véhicules électriques.</div>
+    <div class="story-divider" data-sr></div>
+  </div>
+</section>
+<!-- ========== BEAT 3 : REVEAL ========== -->
+<section class="reveal">
+  <div class="reveal-grid"></div>
+  <div class="reveal-ring"></div>
+  <h1 class="reveal-headline" data-sr>
+    Un centre d'ingénierie dédié aux <em>véhicules électriques</em>. Pas un garage.
+  </h1>
+  <p class="reveal-sub" data-sr>Île-de-France</p>
+</section>
+<!-- ========== BEAT 4 : CTA ========== -->
+<section class="cta-section">
+  <!-- Countdown -->
+  <div class="cta-countdown" data-sr>
+    <p class="countdown-label">Ouverture dans</p>
+    <div class="countdown-row">
+      <div class="cd-block"><span class="cd-num" id="cd-d">--</span><span class="cd-unit">jours</span></div>
+      <span class="cd-sep">:</span>
+      <div class="cd-block"><span class="cd-num" id="cd-h">--</span><span class="cd-unit">heures</span></div>
+      <span class="cd-sep">:</span>
+      <div class="cd-block"><span class="cd-num" id="cd-m">--</span><span class="cd-unit">minutes</span></div>
+    </div>
+  </div>
+  <h2 class="cta-headline" data-sr>La réparation de véhicules électriques<br><span class="cta-highlight">va changer.</span></h2>
+  <div class="email-form" id="email-form" data-sr>
+    <div class="form-row">
+      <div class="email-field">
+        <input type="text" id="prenom-input" placeholder="Prénom" required>
+      </div>
+      <div class="email-field">
+        <input type="email" id="email-input" placeholder="votre@email.com" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="email-field vehicle-field">
+        <input type="text" id="vehicule-input" placeholder="Marque et modèle de votre véhicule (ex: Renault ZOE)">
+      </div>
+      <button class="submit-btn" onclick="handleSubmit()">M'INSCRIRE</button>
+    </div>
+  </div>
+  <div class="form-success" id="form-success">
+    &#10003; Vous serez parmi les premiers informés.
+  </div>
+  <p class="form-note sr" data-sr style="margin-top:20px">Inscrivez-vous pour le voir en premier.</p>
+</section>
+<!-- ========== FOOTER ========== -->
+<footer>
+  &copy; 2025 WOHM SAS — Île-de-France
+  <br><br>
+  <a href="#">Mentions légales</a>
+</footer>
+<script>
+// ===== COUNTDOWN =====
+function updateCountdown() {
+  var target = new Date('2025-07-01T09:00:00+02:00');
+  var now = new Date();
+  var diff = target - now;
+  if (diff <= 0) {
+    document.getElementById('cd-d').textContent = '00';
+    document.getElementById('cd-h').textContent = '00';
+    document.getElementById('cd-m').textContent = '00';
+    return;
+  }
+  document.getElementById('cd-d').textContent = String(Math.floor(diff/(1000*60*60*24))).padStart(2,'0');
+  document.getElementById('cd-h').textContent = String(Math.floor((diff%(1000*60*60*24))/(1000*60*60))).padStart(2,'0');
+  document.getElementById('cd-m').textContent = String(Math.floor((diff%(1000*60*60))/(1000*60))).padStart(2,'0');
+}
+updateCountdown();
+setInterval(updateCountdown, 60000);
+// ===== SCROLL REVEAL =====
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+document.querySelectorAll('[data-sr]').forEach(function(el, i) {
+  el.style.transitionDelay = (i * 0.15) + 's';
+  observer.observe(el);
+});
+// ===== FORM =====
+async function handleSubmit() {
+  var prenom = document.getElementById('prenom-input').value.trim();
+  var email = document.getElementById('email-input').value.trim();
+  var vehicule = document.getElementById('vehicule-input').value.trim();
+  if (!prenom) {
+    flashError('prenom-input');
+    return;
+  }
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    flashError('email-input');
+    return;
+  }
+  var btn = document.querySelector('.submit-btn');
+  btn.textContent = '...';
+  btn.disabled = true;
+  try {
+    var res = await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prenom: prenom, email: email, vehicule: vehicule || undefined })
+    });
+    if (res.ok) {
+      document.getElementById('email-form').style.display = 'none';
+      document.getElementById('form-success').style.display = 'block';
+    } else {
+      var data = await res.json();
+      btn.textContent = data.error || 'ERREUR — RÉESSAYEZ';
+      btn.disabled = false;
+      setTimeout(function() { btn.textContent = "M'INSCRIRE"; }, 3000);
+    }
+  } catch (e) {
+    btn.textContent = 'ERREUR RÉSEAU';
+    btn.disabled = false;
+    setTimeout(function() { btn.textContent = "M'INSCRIRE"; }, 3000);
+  }
+}
+function flashError(id) {
+  var el = document.getElementById(id);
+  el.style.borderColor = '#FF6B35';
+  el.style.boxShadow = '0 0 0 3px rgba(255,107,53,0.15)';
+  el.focus();
+  setTimeout(function() { el.style.borderColor = ''; el.style.boxShadow = ''; }, 2000);
+}
+// Enter key on any field
+document.querySelectorAll('#email-form input').forEach(function(input) {
+  input.addEventListener('keydown', function(e) { if (e.key === 'Enter') handleSubmit(); });
+});
+</script>
+</body>
+</html>

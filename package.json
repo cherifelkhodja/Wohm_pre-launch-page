@@ -1,0 +1,19 @@
+{
+  "name": "wohm-prelaunch",
+  "version": "1.0.0",
+  "description": "Site pré-lancement WOHM — Capture de leads pour wohm.fr",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "pg": "^8.13.1"
+  }
+}
