@@ -131,9 +131,9 @@ function validateSubscribeInput(body) {
 
   if (body.vehicule !== undefined && body.vehicule !== null) {
     if (typeof body.vehicule !== 'string') {
-      errors.push('Le véhicule doit être une chaîne de caractères.');
+      errors.push('La voiture doit être une chaîne de caractères.');
     } else if (body.vehicule.trim().length > 255) {
-      errors.push('Le véhicule ne doit pas dépasser 255 caractères.');
+      errors.push('La voiture ne doit pas dépasser 255 caractères.');
     }
   }
 
