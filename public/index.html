@@ -3,20 +3,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WOHM — L'exigence de la F1 au service de votre véhicule électrique</title>
-<meta name="description" content="WOHM — L'exigence de la F1 au service de votre véhicule électrique. Ouverture Juillet 2026 en Île-de-France.">
-<!-- OG Meta Tags -->
-<meta property="og:title" content="WOHM — L'exigence de la F1 au service de votre véhicule électrique">
-<meta property="og:description" content="Un centre d'ingénierie dédié aux véhicules électriques. Pas un garage. Ouverture Juillet 2026 en Île-de-France.">
-<meta property="og:image" content="https://wohm.fr/og-image.png">
-<meta property="og:url" content="https://wohm.fr">
+<title>WOHM — Réparation batteries & moteurs de voitures électriques</title>
+<meta name="description" content="WOHM — Centre d'ingénierie spécialisé dans la réparation de batteries haute tension et moteurs de voitures électriques en Île-de-France. Jusqu'à 80% d'économie vs remplacement constructeur.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://wohm.fr/">
+<!-- Open Graph -->
 <meta property="og:type" content="website">
+<meta property="og:title" content="WOHM — Réparation batteries & moteurs de voitures électriques">
+<meta property="og:description" content="Centre d'ingénierie dédié à la réparation de voitures électriques en Île-de-France. Batteries HV, moteurs, BMS — jusqu'à 80% d'économie.">
+<meta property="og:url" content="https://wohm.fr/">
+<meta property="og:image" content="https://wohm.fr/assets/og-image.png">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:site_name" content="WOHM">
+<!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="WOHM — Réparation batteries & moteurs de voitures électriques">
+<meta name="twitter:description" content="Centre d'ingénierie dédié à la réparation de voitures électriques en Île-de-France.">
+<meta name="twitter:image" content="https://wohm.fr/assets/og-image.png">
 <!-- Favicon -->
-<link rel="icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+<!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "WOHM",
+  "description": "Centre d'ingénierie spécialisé dans la réparation de batteries haute tension et moteurs de voitures électriques",
+  "url": "https://wohm.fr",
+  "email": "contact@wohm.fr",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "14 avenue du Général de Gaulle",
+    "addressLocality": "Saint-Mandé",
+    "postalCode": "94160",
+    "addressCountry": "FR"
+  },
+  "areaServed": {
+    "@type": "Place",
+    "name": "Île-de-France"
+  },
+  "openingDate": "2026-07-06"
+}
+</script>
+<!-- Analytics (placeholder) -->
+<!-- TODO: Remplacer par le vrai script analytics -->
+<script defer data-domain="wohm.fr" src="https://plausible.io/js/script.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -418,6 +455,139 @@ footer a:hover{
 /* ====== SCROLL REVEAL GENERIC ====== */
 .sr{opacity:0;transform:translateY(30px);transition:opacity 0.8s ease,transform 0.8s ease}
 .sr.visible{opacity:1;transform:translateY(0)}
+/* ====== PHASE 1 : PROBLEM SECTION ====== */
+.problem-section{
+  min-height:auto;
+  padding:100px 24px;
+  background:var(--deep);
+  position:relative;
+  overflow:hidden;
+}
+.problem-inner{
+  max-width:720px;
+  text-align:center;
+  position:relative;z-index:2;
+}
+.section-label{
+  font-family:'Outfit',sans-serif;
+  font-weight:600;font-size:14px;
+  letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--blue);
+  margin-bottom:24px;
+}
+.problem-text{
+  font-family:'Outfit',sans-serif;
+  font-weight:300;font-size:clamp(16px,1.8vw,20px);
+  line-height:1.7;color:var(--white);
+}
+.problem-text strong{
+  color:var(--blue);font-weight:600;
+}
+/* ====== PHASE 1 : APPROACH SECTION ====== */
+.approach-section{
+  min-height:auto;
+  padding:100px 24px;
+  background:var(--surface);
+  border-top:1px solid rgba(46,163,224,0.06);
+  border-bottom:1px solid rgba(46,163,224,0.06);
+  position:relative;
+  overflow:hidden;
+}
+html.light .approach-section{
+  border-top:1px solid rgba(29,142,199,0.08);
+  border-bottom:1px solid rgba(29,142,199,0.08);
+}
+.approach-inner{
+  max-width:720px;
+  text-align:center;
+  position:relative;z-index:2;
+}
+.approach-text{
+  font-family:'Outfit',sans-serif;
+  font-weight:300;font-size:clamp(16px,1.8vw,20px);
+  line-height:1.7;color:var(--silver);
+  margin-bottom:32px;
+}
+.approach-highlight{
+  font-family:'Outfit',sans-serif;
+  font-weight:400;font-size:clamp(18px,2vw,22px);
+  line-height:1.6;color:var(--accent);
+  margin-bottom:64px;
+}
+/* Key figures */
+.key-figures{
+  display:flex;gap:40px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+.key-figure{
+  flex:1;min-width:200px;max-width:280px;
+  text-align:center;
+  padding:32px 16px;
+  border-radius:16px;
+  border:1px solid rgba(46,163,224,0.08);
+  background:rgba(46,163,224,0.02);
+  transition:border-color 0.3s, box-shadow 0.3s;
+}
+.key-figure:hover{
+  border-color:rgba(46,163,224,0.15);
+  box-shadow:0 0 40px rgba(46,163,224,0.06);
+}
+html.light .key-figure{
+  border-color:rgba(29,142,199,0.1);
+  background:rgba(29,142,199,0.03);
+}
+html.light .key-figure:hover{
+  border-color:rgba(29,142,199,0.2);
+  box-shadow:0 0 40px rgba(29,142,199,0.06);
+}
+.key-figure-number{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(36px,5vw,56px);
+  line-height:1;
+  color:var(--blue);
+  margin-bottom:8px;
+}
+.key-figure-unit{
+  font-family:'Outfit',sans-serif;
+  font-weight:600;font-size:14px;
+  letter-spacing:0.05em;
+  color:var(--white);
+  margin-bottom:8px;
+}
+.key-figure-desc{
+  font-family:'Outfit',sans-serif;
+  font-weight:300;font-size:13px;
+  color:var(--silver);
+  line-height:1.4;
+}
+/* ====== PHASE 1 : EXPERTISE SECTION ====== */
+.expertise-section{
+  min-height:auto;
+  padding:100px 24px;
+  background:var(--deep);
+  position:relative;
+  overflow:hidden;
+}
+.expertise-inner{
+  max-width:720px;
+  text-align:center;
+  position:relative;z-index:2;
+}
+.expertise-text{
+  font-family:'Outfit',sans-serif;
+  font-weight:300;font-size:clamp(16px,1.8vw,20px);
+  line-height:1.7;color:var(--silver);
+}
+.expertise-text strong{
+  color:var(--white);font-weight:500;
+}
+/* ====== RESPONSIVE NEW SECTIONS ====== */
+@media(max-width:639px){
+  .problem-section,.approach-section,.expertise-section{padding:60px 16px}
+  .key-figures{gap:16px;flex-direction:column;align-items:center}
+  .key-figure{min-width:unset;max-width:100%;width:100%}
+}
 </style>
 </head>
 <body>
@@ -438,10 +608,10 @@ footer a:hover{
   </div>
   <div class="logo-wrapper">
     <div class="logo-glow"></div>
-    <img class="logo-img" id="logo-img" src="/assets/Wohm%20-%20Dark.png" alt="WOHM">
+    <img class="logo-img" id="logo-img" src="/assets/Wohm%20-%20Dark.png" alt="WOHM — Centre d'ingénierie voitures électriques">
   </div>
   <p class="hero-tagline">
-    L'exigence de la <strong>F1</strong> au service de votre véhicule électrique.
+    L'exigence de la <strong>F1</strong> au service de votre voiture électrique.
   </p>
 </section>
 
@@ -450,10 +620,43 @@ footer a:hover{
   <div class="reveal-grid"></div>
   <div class="reveal-ring"></div>
   <h1 class="reveal-headline" data-sr>
-    Un centre d'ingénierie dédié à la <em>réparation de vos véhicules électriques</em>.
+    Un centre d'ingénierie dédié à la <em>réparation de vos voitures électriques</em>.
   </h1>
   <p class="reveal-sub" data-sr>Île-de-France</p>
 </section>
+<!-- ========== PHASE 1 : LE PROBLÈME ========== -->
+<section class="problem-section">
+  <div class="problem-inner">
+    <p class="section-label sr" data-sr>Le problème</p>
+    <p class="problem-text sr" data-sr>
+      Votre batterie haute tension est en panne. Votre moteur électrique vibre, surchauffe ou perd en puissance. Le constructeur vous annonce <strong>15 000 à 30 000 € de remplacement</strong>. Votre voiture n'est plus sous garantie. Jusqu'ici, vous n'aviez pas d'alternative.
+    </p>
+  </div>
+</section>
+
+<!-- ========== PHASE 1 : NOTRE APPROCHE ========== -->
+<section class="approach-section">
+  <div class="approach-inner">
+    <p class="section-label sr" data-sr>Notre approche</p>
+    <p class="approach-text sr" data-sr>
+      WOHM est un centre d'ingénierie qui répare ce que les constructeurs remplacent. Diagnostic de précision, intervention ciblée, composants d'origine — nous réparons les batteries HV et moteurs électriques pour une fraction du coût constructeur.
+    </p>
+    <p class="approach-highlight sr" data-sr>
+      Réparation jusqu'à <strong>80% d'économie</strong> par rapport au tarif de remplacement constructeur.
+    </p>
+  </div>
+</section>
+
+<!-- ========== PHASE 1 : EXPERTISE ========== -->
+<section class="expertise-section">
+  <div class="expertise-inner">
+    <p class="section-label sr" data-sr>Expertise</p>
+    <p class="expertise-text sr" data-sr>
+      Notre équipe d'ingénieurs vient de <strong>l'industrie de la F1</strong>. Électronique de puissance, systèmes de gestion de batteries (BMS), protocoles CAN Bus — nous maîtrisons les technologies qui font rouler votre voiture.
+    </p>
+  </div>
+</section>
+
 <!-- ========== BEAT 4 : CTA ========== -->
 <section class="cta-section">
   <!-- Countdown -->
@@ -467,20 +670,21 @@ footer a:hover{
       <div class="cd-block"><span class="cd-num" id="cd-m">--</span><span class="cd-unit">minutes</span></div>
     </div>
   </div>
-  <h2 class="cta-headline" data-sr>La réparation de véhicules électriques<br><span class="cta-highlight">va changer.</span></h2>
-  <div class="email-form" id="email-form" data-sr>
+  <h2 class="cta-headline" data-sr>La réparation des voitures électriques<br><span class="cta-highlight">va changer.</span></h2>
+  <p class="cta-sub" data-sr>Inscrivez-vous pour être informé de notre ouverture et bénéficier d'un <strong style="color:var(--white);font-weight:500">diagnostic offert</strong> lors du lancement.</p>
+  <div class="email-form" id="email-form" data-sr role="form" aria-label="Formulaire d'inscription à la liste d'attente WOHM">
     <div class="form-row">
       <div class="email-field">
-        <input type="text" id="prenom-input" placeholder="Prénom" required>
+        <input type="text" id="prenom-input" placeholder="Prénom" required aria-label="Votre prénom">
       </div>
       <div class="email-field">
-        <input type="email" id="email-input" placeholder="votre@email.com" required>
+        <input type="email" id="email-input" placeholder="votre@email.com" required aria-label="Votre adresse email">
       </div>
       <div class="email-field">
-        <input type="text" id="vehicule-input" placeholder="Véhicule (ex: Tesla Model 3)">
+        <input type="text" id="vehicule-input" placeholder="Voiture (ex: Tesla Model 3)" aria-label="Votre voiture électrique">
       </div>
     </div>
-    <button class="submit-btn" onclick="handleSubmit()">M'INSCRIRE</button>
+    <button class="submit-btn" onclick="handleSubmit()" aria-label="S'inscrire à la liste d'attente">M'INSCRIRE</button>
   </div>
   <div class="form-success" id="form-success">
     &#10003; Vous serez parmi les premiers informés.
@@ -593,6 +797,31 @@ function flashError(id) {
 document.querySelectorAll('#email-form input').forEach(function(input) {
   input.addEventListener('keydown', function(e) { if (e.key === 'Enter') handleSubmit(); });
 });
+// ===== COUNT-UP ANIMATIONS =====
+(function() {
+  var yearsEl = document.querySelector('[data-countup-years]');
+  if (!yearsEl) return;
+  var animated = false;
+  var countObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting && !animated) {
+        animated = true;
+        var target = 13;
+        var duration = 1500;
+        var start = performance.now();
+        function tick(now) {
+          var progress = Math.min((now - start) / duration, 1);
+          var eased = 1 - Math.pow(1 - progress, 3);
+          yearsEl.textContent = Math.round(eased * target);
+          if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+        countObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  countObserver.observe(yearsEl);
+})();
 </script>
 </body>
 </html>
