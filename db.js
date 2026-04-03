@@ -128,6 +128,15 @@ async function initDB() {
       );
     `);
 
+    // --- Site settings (key/value store) ---
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS site_settings (
+        key VARCHAR(100) PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+
     console.log('Database initialized successfully');
   } catch (err) {
     console.error('Database initialization failed:', err.message);

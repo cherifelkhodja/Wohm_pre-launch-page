@@ -165,6 +165,9 @@ function injectAdminStyles() {
     '.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }',
     '.form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }',
     '.tag { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; background: var(--border); color: var(--text-muted); margin: 2px 4px 2px 0; }',
+    '.rich-editor[data-empty="true"]:before { content: attr(data-placeholder); color: var(--text-muted); pointer-events: none; }',
+    '.rich-editor:focus { border-color: var(--blue); }',
+    'html.light .rich-editor { background: #F9FAFB; border-color: #E5E7EB; color: #1A1A2E; }',
     '@media (max-width: 768px) { .admin-nav { width: 60px; } .admin-nav-link { font-size: 0; } .admin-main { margin-left: 60px; padding: 20px 16px; } .form-row { grid-template-columns: 1fr; } }',
   ].join('\n');
   document.head.appendChild(style);

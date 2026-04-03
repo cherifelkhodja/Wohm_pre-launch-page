@@ -83,12 +83,22 @@
           </div>
         </div>
         <div class="form-group">
-          <label for="description">Description (missions principales) *</label>
-          <textarea id="description" rows="6" placeholder="Décrivez les missions principales du poste..." required></textarea>
+          <label>Description (missions principales) *</label>
+          <div class="rich-toolbar" style="display:flex;gap:4px;margin-bottom:4px">
+            <button type="button" class="btn btn-sm btn-secondary fmt-btn" data-cmd="bold" style="font-weight:700">B</button>
+            <button type="button" class="btn btn-sm btn-secondary fmt-btn" data-cmd="italic" style="font-style:italic">I</button>
+            <button type="button" class="btn btn-sm btn-secondary fmt-btn" data-cmd="underline" style="text-decoration:underline">U</button>
+          </div>
+          <div id="description" class="rich-editor" contenteditable="true" data-placeholder="Décrivez les missions principales du poste..." style="min-height:140px;padding:10px 12px;background:var(--deep);border:1px solid var(--border);border-radius:6px;outline:none;line-height:1.6;font-size:14px;color:var(--text)"></div>
         </div>
         <div class="form-group">
-          <label for="profile">Profil recherché</label>
-          <textarea id="profile" rows="4" placeholder="Décrivez le profil idéal..."></textarea>
+          <label>Profil recherché</label>
+          <div class="rich-toolbar" style="display:flex;gap:4px;margin-bottom:4px">
+            <button type="button" class="btn btn-sm btn-secondary fmt-btn" data-cmd="bold" style="font-weight:700">B</button>
+            <button type="button" class="btn btn-sm btn-secondary fmt-btn" data-cmd="italic" style="font-style:italic">I</button>
+            <button type="button" class="btn btn-sm btn-secondary fmt-btn" data-cmd="underline" style="text-decoration:underline">U</button>
+          </div>
+          <div id="profile" class="rich-editor" contenteditable="true" data-placeholder="Décrivez le profil idéal..." style="min-height:100px;padding:10px 12px;background:var(--deep);border:1px solid var(--border);border-radius:6px;outline:none;line-height:1.6;font-size:14px;color:var(--text)"></div>
         </div>
         <div class="form-group">
           <label for="skills">Compétences (séparées par des virgules)</label>
@@ -162,6 +172,8 @@
       document.getElementById('btn-submit').textContent = 'Créer';
       document.getElementById('job-form').reset();
       document.getElementById('job-id').value = '';
+      document.getElementById('description').innerHTML = '';
+      document.getElementById('profile').innerHTML = '';
       document.getElementById('form-error').textContent = '';
       document.getElementById('modal').style.display = 'flex';
     }
@@ -177,8 +189,8 @@
       document.getElementById('experience_level').value = job.experience_level || '';
       document.getElementById('location').value = job.location || '';
       document.getElementById('remote_policy').value = job.remote_policy || '';
-      document.getElementById('description').value = job.description;
-      document.getElementById('profile').value = job.profile || '';
+      document.getElementById('description').innerHTML = job.description;
+      document.getElementById('profile').innerHTML = job.profile || '';
       document.getElementById('skills').value = (job.skills || []).join(', ');
       document.getElementById('form-error').textContent = '';
       document.getElementById('modal').style.display = 'flex';
@@ -216,8 +228,8 @@
         experience_level: document.getElementById('experience_level').value || null,
         location: document.getElementById('location').value || null,
         remote_policy: document.getElementById('remote_policy').value || null,
-        description: document.getElementById('description').value,
-        profile: document.getElementById('profile').value || null,
+        description: document.getElementById('description').innerHTML.trim(),
+        profile: document.getElementById('profile').innerHTML.trim() || null,
         skills: skillsArray,
       };
 
@@ -250,6 +262,31 @@
       if (action === 'edit') editJob(btn.getAttribute('data-id'));
       if (action === 'archive') toggleArchive(btn.getAttribute('data-id'));
       if (action === 'delete') deleteJob(btn.getAttribute('data-id'));
+    });
+
+    // Rich text formatting buttons
+    document.querySelectorAll('.fmt-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.execCommand(this.getAttribute('data-cmd'));
+        // Re-focus the nearest editor
+        var editor = this.closest('.form-group').querySelector('.rich-editor');
+        if (editor) editor.focus();
+      });
+    });
+
+    // Placeholder for contenteditable
+    document.querySelectorAll('.rich-editor').forEach(function(editor) {
+      function updatePlaceholder() {
+        if (!editor.textContent.trim()) {
+          editor.setAttribute('data-empty', 'true');
+        } else {
+          editor.removeAttribute('data-empty');
+        }
+      }
+      editor.addEventListener('input', updatePlaceholder);
+      editor.addEventListener('focus', updatePlaceholder);
+      editor.addEventListener('blur', updatePlaceholder);
+      updatePlaceholder();
     });
 
     // Static button listeners

@@ -13,6 +13,7 @@ const adminSubscriberRoutes = require('./routes/admin-subscribers');
 const adminInviteRoutes = require('./routes/admin-invites');
 const adminJobRoutes = require('./routes/admin-jobs');
 const adminApplicationRoutes = require('./routes/admin-applications');
+const adminSettingsRoutes = require('./routes/admin-settings');
 const publicJobRoutes = require('./routes/public-jobs');
 const { startDigestCron } = require('./services/digest');
 const publicApplyRoutes = require('./routes/public-apply');
@@ -124,6 +125,8 @@ app.use('/api/admin', adminInviteRoutes);
 app.use('/api/admin', adminSubscriberRoutes);
 app.use('/api/admin', adminJobRoutes);
 app.use('/api/admin', adminApplicationRoutes);
+app.use('/api/admin', adminSettingsRoutes);
+app.use('/api', adminSettingsRoutes); // public endpoint for company presentation
 
 // --- Job detail page (SSR) ---
 app.get('/jobs/:slug', (req, res) => {
