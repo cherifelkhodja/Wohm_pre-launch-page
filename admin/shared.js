@@ -106,6 +106,7 @@ function renderAdminNav(currentPage) {
     { href: '/admin/', label: 'Dashboard', icon: '&#9636;' },
     { href: '/admin/jobs.html', label: 'Offres', icon: '&#9997;' },
     { href: '/admin/applications.html', label: 'Candidatures', icon: '&#128196;' },
+    { href: '/admin/settings.html', label: 'Paramètres', icon: '&#9881;' },
   ];
 
   var nav = document.createElement('nav');

@@ -210,3 +210,8 @@
 
 ### fix(review): Clarification paramIdx dans la pagination admin
 - Indices `limitIdx` et `offsetIdx` calculés explicitement avant le push
+
+### refactor: Extraction de la présentation WOHM dans une page Paramètres
+- Création de `admin/settings.html` — page dédiée avec éditeur de présentation
+- Suppression du bloc présentation du dashboard (`admin/index.html`)
+- Ajout de l'entrée "Paramètres" dans la navigation admin (`admin/shared.js`)
