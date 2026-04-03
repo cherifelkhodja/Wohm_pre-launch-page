@@ -77,8 +77,30 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// Theme toggle
+function initThemeToggle() {
+  var stored = localStorage.getItem('admin-theme');
+  if (stored === 'light') {
+    document.documentElement.classList.add('light');
+  }
+}
+
+function toggleTheme() {
+  document.documentElement.classList.toggle('light');
+  var isLight = document.documentElement.classList.contains('light');
+  localStorage.setItem('admin-theme', isLight ? 'light' : 'dark');
+  // Update logo
+  var logos = document.querySelectorAll('.admin-nav-logo img');
+  logos.forEach(function(img) {
+    img.src = isLight ? '/assets/Wohm - Light.png' : '/assets/Wohm - Dark.png';
+  });
+}
+
 // Inject admin navigation sidebar
 function renderAdminNav(currentPage) {
+  initThemeToggle();
+  var isLight = document.documentElement.classList.contains('light');
+
   var navItems = [
     { href: '/admin/', label: 'Dashboard', icon: '&#9636;' },
     { href: '/admin/jobs.html', label: 'Offres', icon: '&#9997;' },
@@ -87,14 +109,18 @@ function renderAdminNav(currentPage) {
 
   var nav = document.createElement('nav');
   nav.className = 'admin-nav';
-  var html = '<div class="admin-nav-logo"><img src="/assets/Wohm - Dark.png" alt="WOHM" style="height:28px"></div>';
+  var logoSrc = isLight ? '/assets/Wohm - Light.png' : '/assets/Wohm - Dark.png';
+  var html = '<div class="admin-nav-logo"><img src="' + logoSrc + '" alt="WOHM" style="height:28px"></div>';
   html += '<div class="admin-nav-links">';
   navItems.forEach(function(item) {
     var active = currentPage === item.href ? ' active' : '';
     html += '<a href="' + item.href + '" class="admin-nav-link' + active + '">' + item.icon + ' ' + item.label + '</a>';
   });
   html += '</div>';
-  html += '<div class="admin-nav-footer"><button onclick="logout()" class="admin-nav-logout">Déconnexion</button></div>';
+  html += '<div class="admin-nav-footer">';
+  html += '<button onclick="toggleTheme()" class="admin-nav-theme" title="Changer de thème">' + (isLight ? '&#127769;' : '&#9728;&#65039;') + '</button>';
+  html += '<button onclick="logout()" class="admin-nav-logout">Déconnexion</button>';
+  html += '</div>';
   nav.innerHTML = html;
   document.body.insertBefore(nav, document.body.firstChild);
 }
@@ -105,6 +131,14 @@ function injectAdminStyles() {
   style.textContent = [
     '*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }',
     ':root { --blue: #2EA3E0; --deep: #060A13; --surface: #0B1120; --text: #E8EDF5; --text-muted: #8A94A6; --border: #1A2235; --error: #E74C3C; --success: #27AE60; }',
+    'html.light { --deep: #F5F7FA; --surface: #FFFFFF; --text: #1A1A2E; --text-muted: #6B7280; --border: #E5E7EB; }',
+    'html.light .admin-nav { background: #FFFFFF; border-right-color: #E5E7EB; }',
+    'html.light .admin-nav-link:hover { background: #F3F4F6; }',
+    'html.light .admin-nav-link.active { background: #2EA3E015; }',
+    'html.light .form-group input, html.light .form-group select, html.light .form-group textarea { background: #F9FAFB; border-color: #E5E7EB; color: #1A1A2E; }',
+    'html.light .btn-secondary { background: #E5E7EB; color: #1A1A2E; }',
+    'html.light .modal { background: #FFFFFF; border-color: #E5E7EB; }',
+    'html.light tr:hover td { background: #F9FAFB; }',
     'body { font-family: "Outfit", sans-serif; background: var(--deep); color: var(--text); min-height: 100vh; display: flex; }',
     '.admin-nav { width: 220px; min-height: 100vh; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px 0; position: fixed; left: 0; top: 0; }',
     '.admin-nav-logo { padding: 0 20px 24px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }',
@@ -113,6 +147,7 @@ function injectAdminStyles() {
     '.admin-nav-link:hover { background: var(--border); color: var(--text); }',
     '.admin-nav-link.active { background: var(--blue)15; color: var(--blue); font-weight: 600; }',
     '.admin-nav-footer { padding: 16px 20px; border-top: 1px solid var(--border); margin-top: auto; }',
+    '.admin-nav-theme { background: none; border: none; cursor: pointer; font-size: 18px; padding: 8px 0; margin-bottom: 8px; display: block; }',
     '.admin-nav-logout { background: none; border: none; color: var(--text-muted); cursor: pointer; font-family: inherit; font-size: 13px; padding: 8px 0; }',
     '.admin-nav-logout:hover { color: var(--error); }',
     '.admin-main { margin-left: 220px; flex: 1; padding: 32px 40px; min-height: 100vh; }',

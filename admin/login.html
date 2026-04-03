@@ -104,11 +104,19 @@
       width: 80px;
       margin: 0 auto 24px;
     }
+    html.light { --deep: #F5F7FA; --surface: #FFFFFF; --text: #1A1A2E; --text-muted: #6B7280; --border: #E5E7EB; }
+    html.light .form-group input { background: #F9FAFB; border-color: #E5E7EB; color: #1A1A2E; }
+    .theme-toggle {
+      position: fixed; top: 20px; right: 20px; width: 40px; height: 40px;
+      border-radius: 50%; border: 1px solid var(--border); background: var(--surface);
+      cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center;
+    }
   </style>
 </head>
 <body>
+  <button class="theme-toggle" id="theme-toggle" onclick="toggleLoginTheme()"></button>
   <div class="login-card">
-    <img src="/assets/Wohm - Dark.png" alt="WOHM" class="logo">
+    <img src="/assets/Wohm - Dark.png" alt="WOHM" class="logo" id="logo-img">
     <h1>Administration</h1>
     <p>Connectez-vous pour accéder au panneau admin.</p>
     <form id="login-form">
@@ -126,6 +134,24 @@
   </div>
 
   <script>
+    // Theme toggle for login page
+    function updateLoginUI() {
+      var isLight = document.documentElement.classList.contains('light');
+      document.getElementById('theme-toggle').textContent = isLight ? '\u{1F319}' : '\u{2600}\uFE0F';
+      document.getElementById('logo-img').src = isLight ? '/assets/Wohm - Light.png' : '/assets/Wohm - Dark.png';
+    }
+    function toggleLoginTheme() {
+      document.documentElement.classList.toggle('light');
+      var isLight = document.documentElement.classList.contains('light');
+      localStorage.setItem('admin-theme', isLight ? 'light' : 'dark');
+      updateLoginUI();
+    }
+    // Init theme from localStorage
+    if (localStorage.getItem('admin-theme') === 'light') {
+      document.documentElement.classList.add('light');
+    }
+    updateLoginUI();
+
     var form = document.getElementById('login-form');
     var btn = document.getElementById('btn-submit');
     var errorMsg = document.getElementById('error-msg');

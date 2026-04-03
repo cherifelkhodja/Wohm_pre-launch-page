@@ -10,6 +10,8 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --blue: #2EA3E0; --deep: #060A13; --surface: #0B1120; --text: #E8EDF5; --text-muted: #8A94A6; --border: #1A2235; --error: #E74C3C; }
+    html.light { --deep: #F5F7FA; --surface: #FFFFFF; --text: #1A1A2E; --text-muted: #6B7280; --border: #E5E7EB; }
+    html.light .form-group input { background: #F9FAFB; border-color: #E5E7EB; color: #1A1A2E; }
     body { font-family: 'Outfit', sans-serif; background: var(--deep); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
     .setup-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 48px 40px; width: 100%; max-width: 400px; margin: 20px; }
     .setup-card h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; text-align: center; }
@@ -61,6 +63,9 @@
   </div>
 
   <script>
+    // Init theme
+    if (localStorage.getItem('admin-theme') === 'light') document.documentElement.classList.add('light');
+
     var token = new URLSearchParams(window.location.search).get('token');
     var form = document.getElementById('setup-form');
     var subtitle = document.getElementById('subtitle');
