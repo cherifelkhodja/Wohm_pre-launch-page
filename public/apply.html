@@ -19,6 +19,18 @@
     html.light .file-drop { border-color: #D1D5DB; }
     html.light .file-drop:hover, html.light .file-drop.drag-over { border-color: var(--blue); background: #2EA3E008; }
     html.light .form-card { background: #FFFFFF; border-color: #E5E7EB; }
+    .phone-input { display: flex; gap: 0; }
+    .phone-country { position: relative; display: flex; align-items: center; gap: 4px; padding: 10px 10px; background: var(--deep); border: 1px solid var(--border); border-radius: 6px 0 0 6px; border-right: none; cursor: pointer; user-select: none; }
+    .phone-flag { font-size: 20px; line-height: 1; }
+    .phone-arrow { font-size: 10px; color: var(--text-muted); }
+    .phone-input input[type="tel"] { flex: 1; border-radius: 0 6px 6px 0; }
+    .phone-dropdown { display: none; position: absolute; top: 100%; left: 0; min-width: 240px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 50; max-height: 260px; overflow-y: auto; margin-top: 4px; }
+    .phone-dropdown.open { display: block; }
+    .phone-option { padding: 10px 14px; font-size: 14px; cursor: pointer; transition: background 0.1s; }
+    .phone-option:hover { background: var(--border); }
+    html.light .phone-country { background: #F9FAFB; border-color: #E5E7EB; }
+    html.light .phone-dropdown { background: #FFFFFF; border-color: #E5E7EB; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    html.light .phone-option:hover { background: #F3F4F6; }
     body { font-family: 'Outfit', sans-serif; background: var(--deep); color: var(--text); min-height: 100vh; }
     .container { max-width: 700px; margin: 0 auto; padding: 60px 24px 80px; }
     .back-link { display: inline-block; color: var(--blue); text-decoration: none; font-size: 14px; margin-bottom: 32px; }
@@ -105,7 +117,28 @@
           </div>
           <div class="form-group">
             <label for="telephone">Téléphone <span class="req">*</span></label>
-            <input type="tel" id="telephone" name="telephone" placeholder="+33 6 12 34 56 78" required>
+            <div class="phone-input">
+              <div class="phone-country" id="phone-country-btn">
+                <span class="phone-flag" id="phone-flag">&#127467;&#127479;</span>
+                <span class="phone-arrow">&#9662;</span>
+                <div class="phone-dropdown" id="phone-dropdown">
+                  <div class="phone-option" data-code="+33" data-flag="&#127467;&#127479;">&#127467;&#127479; France (+33)</div>
+                  <div class="phone-option" data-code="+32" data-flag="&#127463;&#127466;">&#127463;&#127466; Belgique (+32)</div>
+                  <div class="phone-option" data-code="+41" data-flag="&#127464;&#127469;">&#127464;&#127469; Suisse (+41)</div>
+                  <div class="phone-option" data-code="+352" data-flag="&#127473;&#127482;">&#127473;&#127482; Luxembourg (+352)</div>
+                  <div class="phone-option" data-code="+44" data-flag="&#127468;&#127463;">&#127468;&#127463; Royaume-Uni (+44)</div>
+                  <div class="phone-option" data-code="+49" data-flag="&#127465;&#127466;">&#127465;&#127466; Allemagne (+49)</div>
+                  <div class="phone-option" data-code="+34" data-flag="&#127466;&#127480;">&#127466;&#127480; Espagne (+34)</div>
+                  <div class="phone-option" data-code="+39" data-flag="&#127470;&#127481;">&#127470;&#127481; Italie (+39)</div>
+                  <div class="phone-option" data-code="+351" data-flag="&#127477;&#127481;">&#127477;&#127481; Portugal (+351)</div>
+                  <div class="phone-option" data-code="+212" data-flag="&#127474;&#127462;">&#127474;&#127462; Maroc (+212)</div>
+                  <div class="phone-option" data-code="+216" data-flag="&#127481;&#127475;">&#127481;&#127475; Tunisie (+216)</div>
+                  <div class="phone-option" data-code="+213" data-flag="&#127465;&#127487;">&#127465;&#127487; Algérie (+213)</div>
+                </div>
+              </div>
+              <input type="tel" id="telephone-number" placeholder="7 82 95 57 75" required>
+              <input type="hidden" id="telephone" name="telephone" value="+33">
+            </div>
           </div>
         </div>
 
@@ -220,6 +253,41 @@
   </div>
 
   <script>
+    // Phone country selector
+    var phoneCode = '+33';
+    var phoneCountryBtn = document.getElementById('phone-country-btn');
+    var phoneDropdown = document.getElementById('phone-dropdown');
+    var phoneFlag = document.getElementById('phone-flag');
+    var phoneNumberInput = document.getElementById('telephone-number');
+    var phoneHidden = document.getElementById('telephone');
+
+    phoneCountryBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      phoneDropdown.classList.toggle('open');
+    });
+
+    document.querySelectorAll('.phone-option').forEach(function(opt) {
+      opt.addEventListener('click', function(e) {
+        e.stopPropagation();
+        phoneCode = this.getAttribute('data-code');
+        phoneFlag.innerHTML = this.getAttribute('data-flag');
+        phoneDropdown.classList.remove('open');
+        updatePhoneValue();
+        phoneNumberInput.focus();
+      });
+    });
+
+    document.addEventListener('click', function() {
+      phoneDropdown.classList.remove('open');
+    });
+
+    function updatePhoneValue() {
+      var num = phoneNumberInput.value.replace(/[^\d]/g, '');
+      phoneHidden.value = phoneCode + num;
+    }
+
+    phoneNumberInput.addEventListener('input', updatePhoneValue);
+
     // Load job info if applying to a specific job
     var params = new URLSearchParams(window.location.search);
     var jobId = params.get('job');
