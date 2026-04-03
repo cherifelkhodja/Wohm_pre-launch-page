@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { pool } = require('../db');
 const { upload, validateFileContent } = require('../middleware/upload');
-const { uploadCV } = require('../services/s3');
+const { uploadCV, moveCV } = require('../services/s3');
 const { createRateLimiter } = require('../middleware/rate-limiter');
 
 const router = Router();
@@ -150,13 +150,17 @@ router.post('/apply', applyLimiter, upload.single('cv'), async (req, res) => {
       ]
     );
 
-    // Update S3 key with real application ID
+    // Move S3 object to final path with real application ID
     const appId = result.rows[0].id;
     const finalKey = `cv/${appId}/${timestamp}-${sanitizedName}`;
 
-    // We could move the S3 object, but for simplicity we'll just update the DB key
-    // The file is already uploaded with the temp key, so we keep it as-is
-    // In production, you might want to use the app ID from the start with a two-step approach
+    try {
+      await moveCV(tempKey, finalKey);
+      await pool.query('UPDATE applications SET cv_s3_key = $1 WHERE id = $2', [finalKey, appId]);
+    } catch (moveErr) {
+      // CV is still accessible at tempKey, log but don't fail the application
+      console.error('CV move error (file still at temp path):', moveErr.message);
+    }
 
     return res.json({ ok: true });
   } catch (err) {

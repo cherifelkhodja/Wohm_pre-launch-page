@@ -137,3 +137,33 @@
 - Middleware upload.js avec validation MIME type + magic bytes
 
 ### docs: Mise à jour sitemap.xml avec /jobs et /apply
+
+---
+
+## 2026-04-03 — Corrections post-analyse
+
+### fix: Déplacement du CV vers le chemin final sur S3
+- Le CV était stocké avec un chemin temporaire (`cv/pending/...`) et jamais déplacé
+- Ajout d'une fonction `moveCV` dans `services/s3.js` (CopyObject + DeleteObject)
+- Après insertion en BDD, le fichier est déplacé vers `cv/{appId}/...` et la BDD est mise à jour
+- Fallback gracieux : si le déplacement échoue, le CV reste accessible au chemin temporaire
+
+### fix: Inclusion de la raison du refus dans l'email de rejet
+- `sendRejectionEmail()` ignorait le paramètre `reason` — corrigé avec un bloc stylé dans l'email
+- Ajout de l'échappement HTML (XSS) sur le prénom et la raison
+- Ajout de l'appel à `sendRejectionEmail()` dans `routes/admin-applications.js` lors du changement de statut vers "refusé"
+
+### fix: Validation backend du mot de passe de confirmation (setup admin)
+- Ajout de la validation `password_confirm` côté serveur dans `routes/admin-invites.js`
+
+### fix: Vérification du digest manqué au démarrage
+- Nouvelle table `digest_sent` pour suivre les digests envoyés par date
+- `runDigest()` vérifie si le digest a déjà été envoyé avant d'envoyer
+- `checkMissedDigest()` envoie effectivement le digest si le serveur redémarre après 18h
+
+### fix: Erreur fatale si SESSION_SECRET non défini en production
+- Ajout d'un check au démarrage dans `server.js` — le serveur refuse de démarrer sans `SESSION_SECRET` en production
+
+### feat: Pagination sur les listes
+- `GET /api/jobs` : support `limit` (max 100, défaut 50) et `offset`
+- `GET /api/admin/applications` : support `limit` et `offset`

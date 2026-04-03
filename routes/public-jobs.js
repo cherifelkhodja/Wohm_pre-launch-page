@@ -6,13 +6,17 @@ const router = Router();
 // GET /api/jobs — list active (non-archived) job postings
 router.get('/jobs', async (req, res) => {
   try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 50, 1), 100);
+    const offset = Math.max(parseInt(req.query.offset) || 0, 0);
+
     const result = await pool.query(`
       SELECT id, title, slug, description, profile, location, remote_policy,
              contract_type, experience_level, skills, created_at
       FROM job_postings
       WHERE is_archived = false
       ORDER BY created_at DESC
-    `);
+      LIMIT $1 OFFSET $2
+    `, [limit, offset]);
     return res.json(result.rows);
   } catch (err) {
     console.error('List public jobs error:', err.message);

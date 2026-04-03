@@ -87,6 +87,10 @@ router.post('/setup/:token', async (req, res) => {
       return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 8 caractères.' });
     }
 
+    if (req.body.password_confirm !== undefined && req.body.password_confirm !== password) {
+      return res.status(400).json({ error: 'Les mots de passe ne correspondent pas.' });
+    }
+
     const invite = await pool.query(
       'SELECT id, email, invited_by FROM admin_invites WHERE token = $1 AND accepted_at IS NULL AND expires_at > NOW()',
       [req.params.token]

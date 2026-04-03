@@ -14,15 +14,27 @@ function startDigestCron() {
   console.log('Daily digest cron scheduled (18:00 Europe/Paris)');
 }
 
-async function runDigest() {
+async function runDigest(date) {
   try {
-    // Count applications created today
+    const targetDate = date || new Date();
+
+    // Check if already sent for this date
+    const alreadySent = await pool.query(
+      "SELECT id FROM digest_sent WHERE sent_date = $1::date",
+      [targetDate]
+    );
+    if (alreadySent.rows.length > 0) {
+      console.log('Digest: already sent for this date, skipping.');
+      return;
+    }
+
+    // Count applications created on the target date
     const countResult = await pool.query(`
       SELECT COUNT(*)::int AS count
       FROM applications
-      WHERE created_at >= CURRENT_DATE
-        AND created_at < CURRENT_DATE + INTERVAL '1 day'
-    `);
+      WHERE created_at >= $1::date
+        AND created_at < $1::date + INTERVAL '1 day'
+    `, [targetDate]);
 
     const count = countResult.rows[0].count;
 
@@ -46,7 +58,13 @@ async function runDigest() {
       recipients.push(extraRecipient);
     }
 
-    await sendDailyDigest(recipients, count, new Date());
+    await sendDailyDigest(recipients, count, targetDate);
+
+    // Track that digest was sent
+    await pool.query(
+      'INSERT INTO digest_sent (sent_date, app_count) VALUES ($1::date, $2) ON CONFLICT (sent_date) DO NOTHING',
+      [targetDate, count]
+    );
 
     console.log(`Digest sent: ${count} application(s) to ${recipients.length} recipient(s).`);
   } catch (err) {
@@ -57,13 +75,11 @@ async function runDigest() {
 async function checkMissedDigest() {
   try {
     const now = new Date();
-    // Only check if it's past 18:00 local time
     const parisHour = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' })).getHours();
 
     if (parisHour >= 18) {
-      // We could track sent digests in a table, but for simplicity
-      // we'll just skip the check — the cron will handle it going forward
-      console.log('Digest: startup check — cron will handle scheduled runs.');
+      console.log('Digest: startup after 18h, checking if today\'s digest was sent...');
+      await runDigest(now);
     }
   } catch (err) {
     console.error('Digest missed check error:', err.message);

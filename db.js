@@ -138,6 +138,16 @@ async function initDB() {
       );
     `);
 
+    // --- Digest tracking ---
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS digest_sent (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        sent_date DATE NOT NULL UNIQUE,
+        app_count INTEGER NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+
     // --- Migrations (add columns if missing) ---
     await client.query(`
       ALTER TABLE applications ADD COLUMN IF NOT EXISTS annees_experience INTEGER;
