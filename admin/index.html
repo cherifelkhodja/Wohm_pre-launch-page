@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WOHM Admin — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="/admin/shared.js"></script>
+</head>
+<body>
+  <div class="admin-main">
+    <h1 id="greeting">Dashboard</h1>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-subscribers">—</div>
+        <div class="stat-label">Inscrits (leads)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-visits">—</div>
+        <div class="stat-label">Visites totales</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-unique">—</div>
+        <div class="stat-label">Visiteurs uniques</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-applications">—</div>
+        <div class="stat-label">Candidatures</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-new-applications" style="color:var(--blue)">—</div>
+        <div class="stat-label">Nouvelles candidatures</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-jobs">—</div>
+        <div class="stat-label">Offres actives</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:16px;margin-bottom:16px">Dernières candidatures</h2>
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Candidat</th>
+            <th>Poste</th>
+            <th>Statut</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="recent-applications"></tbody>
+      </table>
+      <div id="no-applications" class="empty-state" style="display:none;padding:24px">
+        Aucune candidature pour le moment.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <h2 style="font-size:16px">Présentation WOHM</h2>
+        <span style="font-size:12px;color:var(--text-muted)">Affiché sur toutes les annonces</span>
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <div id="presentation-editor" class="rich-editor" contenteditable="true" style="min-height:100px;padding:12px;background:var(--deep);border:1px solid var(--border);border-radius:6px;outline:none;line-height:1.6;font-size:14px"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="rich-toolbar" style="display:flex;gap:4px">
+          <button class="btn btn-sm btn-secondary" id="fmt-bold" title="Gras" style="font-weight:700">B</button>
+          <button class="btn btn-sm btn-secondary" id="fmt-italic" title="Italique" style="font-style:italic">I</button>
+          <button class="btn btn-sm btn-secondary" id="fmt-underline" title="Souligné" style="text-decoration:underline">U</button>
+        </div>
+        <button class="btn btn-sm btn-primary" id="btn-save-presentation">Enregistrer</button>
+        <span id="presentation-status" style="font-size:12px;color:var(--success);display:none">Enregistré</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <h2 style="font-size:16px;margin-bottom:16px">Actions rapides</h2>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a href="/admin/jobs.html" class="btn btn-primary">Gérer les offres</a>
+        <a href="/admin/applications.html" class="btn btn-secondary">Voir les candidatures</a>
+        <button class="btn btn-secondary" id="btn-open-invite">Inviter un admin</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invite Modal -->
+  <div class="modal-overlay" id="invite-modal" style="display:none">
+    <div class="modal" style="max-width:400px">
+      <h2>Inviter un admin</h2>
+      <div class="form-group">
+        <label for="invite-email">Email</label>
+        <input type="email" id="invite-email" placeholder="admin@wohm.fr" required>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" id="btn-cancel-invite">Annuler</button>
+        <button class="btn btn-primary" id="btn-invite">Envoyer</button>
+      </div>
+      <div style="font-size:13px;margin-top:8px;text-align:center" id="invite-msg"></div>
+    </div>
+  </div>
+
+  <script>
+    injectAdminStyles();
+    renderAdminNav('/admin/');
+
+    async function loadDashboard() {
+      try {
+        var admin = await getCurrentAdmin();
+        if (admin) {
+          document.getElementById('greeting').textContent = 'Bonjour, ' + admin.prenom;
+        }
+      } catch (e) {}
+
+      // Load stats in parallel
+      Promise.all([
+        fetchAPI('/api/admin/subscribers/count').then(function(r) { return r.json(); }),
+        fetchAPI('/api/admin/visits/count').then(function(r) { return r.json(); }),
+        fetchAPI('/api/admin/applications/new-count').then(function(r) { return r.json(); }),
+        fetchAPI('/api/admin/applications').then(function(r) { return r.json(); }),
+        fetchAPI('/api/admin/jobs').then(function(r) { return r.json(); }),
+      ]).then(function(results) {
+        var subs = results[0];
+        var visits = results[1];
+        var newCount = results[2];
+        var apps = results[3];
+        var jobs = results[4];
+
+        document.getElementById('stat-subscribers').textContent = subs.count;
+        document.getElementById('stat-visits').textContent = visits.total;
+        document.getElementById('stat-unique').textContent = visits.unique_ips;
+        document.getElementById('stat-applications').textContent = apps.length;
+        document.getElementById('stat-new-applications').textContent = newCount.count;
+        document.getElementById('stat-jobs').textContent = jobs.filter(function(j) { return !j.is_archived; }).length;
+
+        // Recent applications (last 5)
+        var recent = apps.slice(0, 5);
+        var tbody = document.getElementById('recent-applications');
+        var noApps = document.getElementById('no-applications');
+
+        if (recent.length === 0) {
+          tbody.innerHTML = '';
+          noApps.style.display = 'block';
+        } else {
+          noApps.style.display = 'none';
+          tbody.innerHTML = recent.map(function(a) {
+            var newBadge = a.is_new ? '<span class="badge-new"></span>' : '';
+            return '<tr>' +
+              '<td>' + newBadge + '</td>' +
+              '<td><strong>' + escapeHtml(a.prenom) + ' ' + escapeHtml(a.nom) + '</strong></td>' +
+              '<td style="font-size:13px;color:var(--text-muted)">' + escapeHtml(a.poste_actuel) + '</td>' +
+              '<td>' + statusBadge(a.status) + '</td>' +
+              '<td style="font-size:13px;color:var(--text-muted)">' + formatDateShort(a.created_at) + '</td>' +
+            '</tr>';
+          }).join('');
+        }
+      }).catch(function(err) {
+        console.error('Dashboard load error:', err);
+      });
+    }
+
+    function openInviteModal() {
+      document.getElementById('invite-email').value = '';
+      document.getElementById('invite-msg').textContent = '';
+      document.getElementById('invite-modal').style.display = 'flex';
+    }
+
+    function closeInviteModal() {
+      document.getElementById('invite-modal').style.display = 'none';
+    }
+
+    async function sendInvite() {
+      var email = document.getElementById('invite-email').value.trim();
+      var msgEl = document.getElementById('invite-msg');
+      var btn = document.getElementById('btn-invite');
+      if (!email) { msgEl.textContent = "L'email est requis."; msgEl.style.color = 'var(--error)'; return; }
+
+      btn.disabled = true;
+      try {
+        var res = await fetchAPI('/api/admin/invites', {
+          method: 'POST',
+          body: { email: email },
+        });
+        var data = await res.json();
+        if (res.ok) {
+          msgEl.textContent = 'Invitation envoyée !';
+          msgEl.style.color = 'var(--success)';
+          setTimeout(closeInviteModal, 2000);
+        } else {
+          msgEl.textContent = data.error || 'Erreur.';
+          msgEl.style.color = 'var(--error)';
+        }
+      } catch (err) {
+        msgEl.textContent = 'Erreur réseau.';
+        msgEl.style.color = 'var(--error)';
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    document.getElementById('btn-open-invite').addEventListener('click', openInviteModal);
+    document.getElementById('btn-cancel-invite').addEventListener('click', closeInviteModal);
+    document.getElementById('btn-invite').addEventListener('click', sendInvite);
+    document.getElementById('invite-modal').addEventListener('click', function(e) {
+      if (e.target === document.getElementById('invite-modal')) closeInviteModal();
+    });
+
+    // Presentation editor
+    var presentationEditor = document.getElementById('presentation-editor');
+
+    async function loadPresentation() {
+      try {
+        var res = await fetchAPI('/api/admin/settings/company_presentation');
+        var data = await res.json();
+        if (data.value) presentationEditor.innerHTML = data.value;
+      } catch (err) { console.error('Load presentation error:', err); }
+    }
+
+    document.getElementById('btn-save-presentation').addEventListener('click', async function() {
+      var btn = this;
+      btn.disabled = true;
+      try {
+        await fetchAPI('/api/admin/settings/company_presentation', {
+          method: 'PUT',
+          body: { value: presentationEditor.innerHTML },
+        });
+        var status = document.getElementById('presentation-status');
+        status.style.display = 'inline';
+        setTimeout(function() { status.style.display = 'none'; }, 2000);
+      } catch (err) { console.error('Save presentation error:', err); }
+      btn.disabled = false;
+    });
+
+    document.getElementById('fmt-bold').addEventListener('click', function() { document.execCommand('bold'); presentationEditor.focus(); });
+    document.getElementById('fmt-italic').addEventListener('click', function() { document.execCommand('italic'); presentationEditor.focus(); });
+    document.getElementById('fmt-underline').addEventListener('click', function() { document.execCommand('underline'); presentationEditor.focus(); });
+
+    loadDashboard();
+    loadPresentation();
+  </script>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WOHM Admin — Offres d'emploi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="/admin/shared.js"></script>
+</head>
+<body>
+  <div class="admin-main" id="main">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <h1>Offres d'emploi</h1>
+      <button class="btn btn-primary" id="btn-new-job">+ Nouvelle offre</button>
+    </div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Titre</th>
+            <th>Contrat</th>
+            <th>Localisation</th>
+            <th>Statut</th>
+            <th>Lien</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="jobs-table"></tbody>
+      </table>
+      <div id="empty-state" class="empty-state" style="display:none">
+        Aucune offre d'emploi pour le moment.
+      </div>
+    </div>
+  </div>
+
+  <!-- Create/Edit Modal -->
+  <div class="modal-overlay" id="modal" style="display:none">
+    <div class="modal">
+      <h2 id="modal-title">Nouvelle offre</h2>
+      <form id="job-form">
+        <input type="hidden" id="job-id">
+        <div class="form-group">
+          <label for="title">Titre *</label>
+          <input type="text" id="title" placeholder="ex: Ingénieur Batteries HT" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="contract_type">Type de contrat *</label>
+            <select id="contract_type" required>
+              <option value="">-- Sélectionner --</option>
+              <option value="CDI">CDI</option>
+              <option value="CDD">CDD</option>
+              <option value="Stage">Stage</option>
+              <option value="Alternance">Alternance</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="experience_level">Niveau d'expérience</label>
+            <select id="experience_level">
+              <option value="">-- Sélectionner --</option>
+              <option value="Junior">Junior</option>
+              <option value="Confirmé">Confirmé</option>
+              <option value="Senior">Senior</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="location">Localisation</label>
+            <input type="text" id="location" placeholder="ex: Saint-Mandé">
+          </div>
+          <div class="form-group">
+            <label for="remote_policy">Télétravail</label>
+            <select id="remote_policy">
+              <option value="">-- Sélectionner --</option>
+              <option value="sur_site">Sur site</option>
+              <option value="teletravail_partiel">Télétravail partiel</option>
+              <option value="teletravail_complet">Télétravail complet</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description (missions principales) *</label>
+          <div class="rich-toolbar" style="display:flex;gap:4px;margin-bottom:4px">
+            <button type="button" class="btn btn-sm btn-secondary fmt-btn" data-cmd="bold" style="font-weight:700">B</button>
+            <button type="button" class="btn btn-sm btn-secondary fmt-btn" data-cmd="italic" style="font-style:italic">I</button>
+            <button type="button" class="btn btn-sm btn-secondary fmt-btn" data-cmd="underline" style="text-decoration:underline">U</button>
+          </div>
+          <div id="description" class="rich-editor" contenteditable="true" data-placeholder="Décrivez les missions principales du poste..." style="min-height:140px;padding:10px 12px;background:var(--deep);border:1px solid var(--border);border-radius:6px;outline:none;line-height:1.6;font-size:14px;color:var(--text)"></div>
+        </div>
+        <div class="form-group">
+          <label>Profil recherché</label>
+          <div class="rich-toolbar" style="display:flex;gap:4px;margin-bottom:4px">
+            <button type="button" class="btn btn-sm btn-secondary fmt-btn" data-cmd="bold" style="font-weight:700">B</button>
+            <button type="button" class="btn btn-sm btn-secondary fmt-btn" data-cmd="italic" style="font-style:italic">I</button>
+            <button type="button" class="btn btn-sm btn-secondary fmt-btn" data-cmd="underline" style="text-decoration:underline">U</button>
+          </div>
+          <div id="profile" class="rich-editor" contenteditable="true" data-placeholder="Décrivez le profil idéal..." style="min-height:100px;padding:10px 12px;background:var(--deep);border:1px solid var(--border);border-radius:6px;outline:none;line-height:1.6;font-size:14px;color:var(--text)"></div>
+        </div>
+        <div class="form-group">
+          <label for="skills">Compétences (séparées par des virgules)</label>
+          <input type="text" id="skills" placeholder="ex: batteries, moteurs, diagnostic">
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="btn-cancel">Annuler</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit">Créer</button>
+        </div>
+        <div style="color:var(--error);font-size:13px;text-align:center;margin-top:12px" id="form-error"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    injectAdminStyles();
+    renderAdminNav('/admin/jobs.html');
+
+    var jobs = [];
+
+    // Convert plain text to HTML (preserve line breaks), skip if already HTML
+    function textToHtml(text) {
+      if (!text) return '';
+      if (/<[a-z][\s\S]*>/i.test(text)) return text; // already HTML
+      return escapeHtml(text).replace(/\n/g, '<br>');
+    }
+
+    async function loadJobs() {
+      try {
+        var res = await fetchAPI('/api/admin/jobs');
+        jobs = await res.json();
+        renderJobs();
+      } catch (err) {
+        console.error('Load jobs error:', err);
+        document.getElementById('empty-state').style.display = 'block';
+      }
+    }
+
+    function renderJobs() {
+      var tbody = document.getElementById('jobs-table');
+      var empty = document.getElementById('empty-state');
+
+      if (jobs.length === 0) {
+        tbody.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
+      tbody.innerHTML = jobs.map(function(j) {
+        var statusHtml = j.is_archived
+          ? '<span style="color:var(--text-muted)">Archivée</span>'
+          : '<span style="color:var(--success)">Active</span>';
+        return '<tr>' +
+          '<td><strong>' + escapeHtml(j.title) + '</strong></td>' +
+          '<td>' + escapeHtml(j.contract_type) + '</td>' +
+          '<td>' + escapeHtml(j.location || '—') + '</td>' +
+          '<td>' + statusHtml + '</td>' +
+          '<td><button class="btn btn-sm btn-secondary" data-action="copy" data-slug="' + escapeHtml(j.slug) + '">Copier le lien</button></td>' +
+          '<td style="white-space:nowrap">' +
+            '<button class="btn btn-sm btn-secondary" data-action="edit" data-id="' + j.id + '" style="margin-right:4px">Modifier</button>' +
+            '<button class="btn btn-sm btn-secondary" data-action="archive" data-id="' + j.id + '">' + (j.is_archived ? 'Désarchiver' : 'Archiver') + '</button>' +
+            ' <button class="btn btn-sm btn-danger" data-action="delete" data-id="' + j.id + '">Supprimer</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function copyLink(slug) {
+      var url = window.location.origin + '/jobs/' + slug;
+      navigator.clipboard.writeText(url).then(function() {
+        alert('Lien copié : ' + url);
+      });
+    }
+
+    function openCreateModal() {
+      document.getElementById('modal-title').textContent = 'Nouvelle offre';
+      document.getElementById('btn-submit').textContent = 'Créer';
+      document.getElementById('job-form').reset();
+      document.getElementById('job-id').value = '';
+      document.getElementById('description').innerHTML = '';
+      document.getElementById('profile').innerHTML = '';
+      document.getElementById('form-error').textContent = '';
+      document.getElementById('modal').style.display = 'flex';
+    }
+
+    function editJob(id) {
+      var job = jobs.find(function(j) { return j.id === id; });
+      if (!job) return;
+      document.getElementById('modal-title').textContent = 'Modifier l\'offre';
+      document.getElementById('btn-submit').textContent = 'Enregistrer';
+      document.getElementById('job-id').value = job.id;
+      document.getElementById('title').value = job.title;
+      document.getElementById('contract_type').value = job.contract_type;
+      document.getElementById('experience_level').value = job.experience_level || '';
+      document.getElementById('location').value = job.location || '';
+      document.getElementById('remote_policy').value = job.remote_policy || '';
+      document.getElementById('description').innerHTML = textToHtml(job.description);
+      document.getElementById('profile').innerHTML = textToHtml(job.profile || '');
+      document.getElementById('skills').value = (job.skills || []).join(', ');
+      document.getElementById('form-error').textContent = '';
+      document.getElementById('modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+
+    async function toggleArchive(id) {
+      await fetchAPI('/api/admin/jobs/' + id + '/archive', { method: 'PATCH' });
+      loadJobs();
+    }
+
+    async function deleteJob(id) {
+      if (!confirm('Supprimer définitivement cette offre ?')) return;
+      await fetchAPI('/api/admin/jobs/' + id, { method: 'DELETE' });
+      loadJobs();
+    }
+
+    // Form submit
+    document.getElementById('job-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var errorEl = document.getElementById('form-error');
+      errorEl.textContent = '';
+      var btn = document.getElementById('btn-submit');
+      btn.disabled = true;
+
+      var skillsRaw = document.getElementById('skills').value;
+      var skillsArray = skillsRaw ? skillsRaw.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [];
+
+      var body = {
+        title: document.getElementById('title').value,
+        contract_type: document.getElementById('contract_type').value,
+        experience_level: document.getElementById('experience_level').value || null,
+        location: document.getElementById('location').value || null,
+        remote_policy: document.getElementById('remote_policy').value || null,
+        description: document.getElementById('description').innerHTML.trim(),
+        profile: document.getElementById('profile').innerHTML.trim() || null,
+        skills: skillsArray,
+      };
+
+      var jobId = document.getElementById('job-id').value;
+      var url = jobId ? '/api/admin/jobs/' + jobId : '/api/admin/jobs';
+      var method = jobId ? 'PUT' : 'POST';
+
+      try {
+        var res = await fetchAPI(url, { method: method, body: body });
+        var data = await res.json();
+        if (!res.ok) {
+          errorEl.textContent = data.error || 'Erreur.';
+        } else {
+          closeModal();
+          loadJobs();
+        }
+      } catch (err) {
+        errorEl.textContent = 'Erreur réseau.';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // Event delegation for dynamic buttons
+    document.getElementById('jobs-table').addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      var action = btn.getAttribute('data-action');
+      if (action === 'copy') copyLink(btn.getAttribute('data-slug'));
+      if (action === 'edit') editJob(btn.getAttribute('data-id'));
+      if (action === 'archive') toggleArchive(btn.getAttribute('data-id'));
+      if (action === 'delete') deleteJob(btn.getAttribute('data-id'));
+    });
+
+    // Rich text formatting buttons
+    document.querySelectorAll('.fmt-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.execCommand(this.getAttribute('data-cmd'));
+        // Re-focus the nearest editor
+        var editor = this.closest('.form-group').querySelector('.rich-editor');
+        if (editor) editor.focus();
+      });
+    });
+
+    // Placeholder for contenteditable
+    document.querySelectorAll('.rich-editor').forEach(function(editor) {
+      function updatePlaceholder() {
+        if (!editor.textContent.trim()) {
+          editor.setAttribute('data-empty', 'true');
+        } else {
+          editor.removeAttribute('data-empty');
+        }
+      }
+      editor.addEventListener('input', updatePlaceholder);
+      editor.addEventListener('focus', updatePlaceholder);
+      editor.addEventListener('blur', updatePlaceholder);
+      updatePlaceholder();
+    });
+
+    // Static button listeners
+    document.getElementById('btn-new-job').addEventListener('click', openCreateModal);
+    document.getElementById('btn-cancel').addEventListener('click', closeModal);
+    document.getElementById('modal').addEventListener('click', function(e) {
+      if (e.target === document.getElementById('modal')) closeModal();
+    });
+
+    loadJobs();
+  </script>
+</body>
+</html>

@@ -84,3 +84,56 @@
 ### docs: Création de CLAUDE.md et memory.md
 - CLAUDE.md : guide complet de développement (stack, structure, conventions, API, SEO)
 - memory.md : journal obligatoire de toutes les modifications du projet
+
+---
+
+## 2026-04-03
+
+### feat: Admin panel avec authentification par sessions
+- Système d'auth par sessions PostgreSQL (express-session + connect-pg-simple + bcryptjs)
+- Page login admin (/admin/login.html) avec thème cohérent du site
+- Script CLI create-admin.js pour créer le premier administrateur
+- Middleware requireSession + transition Bearer token → sessions
+- Dashboard admin avec stats (inscrits, visites, candidatures, offres actives)
+
+### feat: Invitation admin par email (Resend)
+- Route POST /api/admin/invites avec token d'invitation (expire 48h)
+- Page setup.html pour accepter l'invitation et créer son compte
+- Emails d'invitation via Resend API
+
+### feat: Gestion des offres d'emploi (CRUD)
+- Table job_postings avec slug unique, description, profil recherché, compétences (tags), localisation, télétravail, type de contrat, niveau d'expérience
+- Admin : page jobs.html avec CRUD complet + bouton copier le lien
+- Public : page jobs.html (liste), job-detail.html (détail via /jobs/:slug)
+- Route SSR /jobs/:slug pour les URLs partageables sur les plateformes d'emploi
+- Section "On recrute" dynamique dans la landing page (3 dernières offres)
+
+### feat: Système de candidatures avec upload CV sur S3
+- Formulaire de candidature complet : civilité, identité, téléphone, poste, statut professionnel (salarié/stagiaire/alternant)
+- Champs conditionnels : salaire (salarié) ou durée/école/date début (stagiaire/alternant)
+- Disponibilité (immédiate à +3 mois), niveau d'anglais (5 niveaux)
+- Upload CV : PDF + Word, max 10 Mo, drag & drop, validation magic bytes
+- Stockage CV sur AWS S3 avec clé structurée (cv/{id}/{timestamp}-{filename})
+- Téléchargement admin via URL présignée S3 (expire 15 min)
+
+### feat: Suivi des candidatures (admin)
+- Page applications.html avec filtres par statut et par offre
+- Badge "NEW" par admin (table application_views, tracking par admin)
+- Workflow de statuts : new → contacté → entretien → validé / refusé
+- Transitions validées côté serveur
+- Refus : raison obligatoire, stockée pour envoi futur d'email
+
+### feat: Digest quotidien à 18h (node-cron + Resend)
+- Cron planifié à 18h Europe/Paris
+- Email envoyé à tous les admins si nouvelles candidatures dans la journée
+
+### refactor: Restructuration du projet
+- Extraction des routes en modules : routes/, middleware/, services/, scripts/
+- server.js allégé en orchestrateur (middleware, routes, cron)
+- Séparation routes/services/middleware (Single Responsibility)
+- Service slug.js pour la génération de slugs uniques
+- Service s3.js pour l'upload et les URLs présignées
+- Service email.js pour Resend (invitations, digest, refus)
+- Middleware upload.js avec validation MIME type + magic bytes
+
+### docs: Mise à jour sitemap.xml avec /jobs et /apply

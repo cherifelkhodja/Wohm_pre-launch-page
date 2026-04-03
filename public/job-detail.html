@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WOHM — Offre d'emploi</title>
+  <meta name="description" content="Découvrez cette offre d'emploi chez WOHM, centre d'ingénierie spécialisé dans la réparation de voitures électriques.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --blue: #2EA3E0; --deep: #060A13; --surface: #0B1120; --text: #E8EDF5; --text-muted: #8A94A6; --border: #1A2235; }
+    html.light { --deep: #F5F7FA; --surface: #FFFFFF; --text: #1A1A2E; --text-muted: #6B7280; --border: #E5E7EB; }
+    body { font-family: 'Outfit', sans-serif; background: var(--deep); color: var(--text); min-height: 100vh; }
+    .container { max-width: 800px; margin: 0 auto; padding: 60px 24px; }
+    .back-link { display: inline-block; color: var(--blue); text-decoration: none; font-size: 14px; margin-bottom: 32px; }
+    .back-link:hover { text-decoration: underline; }
+    h1 { font-size: clamp(28px, 5vw, 40px); font-weight: 700; margin-bottom: 16px; }
+    .job-meta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 24px; font-size: 14px; color: var(--text-muted); }
+    .tag { display: inline-block; padding: 4px 12px; border-radius: 14px; font-size: 12px; font-weight: 500; }
+    .tag-contract { background: #2EA3E020; color: var(--blue); }
+    .tag-level { background: #9B59B620; color: #9B59B6; }
+    .tag-remote { background: #27AE6020; color: #27AE60; }
+    .tag-skill { background: var(--border); color: var(--text-muted); margin: 2px 4px 2px 0; }
+    .section { margin-bottom: 32px; }
+    .section h2 { font-size: 18px; font-weight: 600; margin-bottom: 12px; color: var(--blue); }
+    .section-content { line-height: 1.7; color: var(--text); white-space: pre-wrap; font-size: 15px; }
+    .skills-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .apply-bar { position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 16px 24px; text-align: center; }
+    .btn-apply { display: inline-block; padding: 14px 40px; background: var(--blue); color: #fff; border: none; border-radius: 8px; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer; text-decoration: none; transition: opacity 0.2s; }
+    .btn-apply:hover { opacity: 0.9; }
+    .loading { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+    .not-found { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+    .presentation-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; }
+    .presentation-section h2 { color: var(--blue); }
+    html.light .presentation-section { background: #F9FAFB; border-color: #E5E7EB; }
+    @media (max-width: 639px) { .container { padding: 40px 16px; } }
+  </style>
+</head>
+<body>
+  <div class="container" id="content">
+    <div class="loading" id="loading">Chargement de l'offre...</div>
+  </div>
+
+  <div class="apply-bar" id="apply-bar" style="display:none">
+    <a class="btn-apply" id="apply-btn" href="#">Postuler</a>
+  </div>
+
+  <script>
+    var remotePolicyLabels = {
+      'sur_site': 'Sur site',
+      'teletravail_partiel': 'Télétravail partiel',
+      'teletravail_complet': 'Télétravail complet',
+    };
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function textToHtml(text) {
+      if (!text) return '';
+      if (/<[a-z][\s\S]*>/i.test(text)) return text;
+      return escapeHtml(text).replace(/\n/g, '<br>');
+    }
+
+    async function loadJob() {
+      var slug = window.location.pathname.split('/jobs/')[1];
+      if (!slug) {
+        showNotFound();
+        return;
+      }
+
+      try {
+        var res = await fetch('/api/jobs/' + encodeURIComponent(slug));
+        if (!res.ok) {
+          showNotFound();
+          return;
+        }
+
+        var job = await res.json();
+        document.title = escapeHtml(job.title) + ' — WOHM';
+
+        var tags = '<span class="tag tag-contract">' + escapeHtml(job.contract_type) + '</span>';
+        if (job.experience_level) tags += '<span class="tag tag-level">' + escapeHtml(job.experience_level) + '</span>';
+        if (job.remote_policy) tags += '<span class="tag tag-remote">' + escapeHtml(remotePolicyLabels[job.remote_policy] || job.remote_policy) + '</span>';
+
+        var skillsHtml = '';
+        if (job.skills && job.skills.length > 0) {
+          skillsHtml = '<div class="section"><h2>Compétences</h2><div class="skills-list">' +
+            job.skills.map(function(s) { return '<span class="tag tag-skill">' + escapeHtml(s) + '</span>'; }).join('') +
+          '</div></div>';
+        }
+
+        var profileHtml = '';
+        if (job.profile) {
+          profileHtml = '<div class="section"><h2>Profil recherché</h2><div class="section-content">' + textToHtml(job.profile) + '</div></div>';
+        }
+
+        // Load company presentation
+        var presentationHtml = '';
+        try {
+          var presRes = await fetch('/api/settings/company-presentation');
+          var presData = await presRes.json();
+          if (presData.value) {
+            presentationHtml = '<div class="section presentation-section"><h2>WOHM</h2><div class="section-content">' + presData.value + '</div></div>';
+          }
+        } catch (e) {}
+
+        document.getElementById('content').innerHTML =
+          '<a href="/jobs.html" class="back-link">&larr; Toutes les offres</a>' +
+          '<h1>' + escapeHtml(job.title) + '</h1>' +
+          '<div class="job-meta">' +
+            (job.location ? '<span>&#128205; ' + escapeHtml(job.location) + '</span>' : '') +
+            '<span>' + tags + '</span>' +
+          '</div>' +
+          presentationHtml +
+          '<div class="section"><h2>Description</h2><div class="section-content">' + textToHtml(job.description) + '</div></div>' +
+          profileHtml +
+          skillsHtml;
+
+        // Set apply link
+        document.getElementById('apply-btn').href = '/apply.html?job=' + job.slug;
+        document.getElementById('apply-bar').style.display = 'block';
+      } catch (err) {
+        showNotFound();
+      }
+    }
+
+    function showNotFound() {
+      document.getElementById('content').innerHTML =
+        '<a href="/jobs.html" class="back-link">&larr; Toutes les offres</a>' +
+        '<div class="not-found"><p style="font-size:18px">Offre non trouvée</p><p style="margin-top:12px">Cette offre n\'existe plus ou a été archivée.</p></div>';
+    }
+
+    loadJob();
+  </script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WOHM — Créer votre compte</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --blue: #2EA3E0; --deep: #060A13; --surface: #0B1120; --text: #E8EDF5; --text-muted: #8A94A6; --border: #1A2235; --error: #E74C3C; }
+    html.light { --deep: #F5F7FA; --surface: #FFFFFF; --text: #1A1A2E; --text-muted: #6B7280; --border: #E5E7EB; }
+    html.light .form-group input { background: #F9FAFB; border-color: #E5E7EB; color: #1A1A2E; }
+    body { font-family: 'Outfit', sans-serif; background: var(--deep); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .setup-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 48px 40px; width: 100%; max-width: 400px; margin: 20px; }
+    .setup-card h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; text-align: center; }
+    .setup-card .subtitle { color: var(--text-muted); font-size: 14px; text-align: center; margin-bottom: 32px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
+    .form-group input { width: 100%; padding: 12px 14px; background: var(--deep); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: inherit; font-size: 15px; outline: none; transition: border-color 0.2s; }
+    .form-group input:focus { border-color: var(--blue); }
+    .form-group input:disabled { opacity: 0.5; }
+    .btn-setup { width: 100%; padding: 14px; background: var(--blue); color: #fff; border: none; border-radius: 8px; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; margin-top: 8px; }
+    .btn-setup:hover { opacity: 0.9; }
+    .btn-setup:disabled { opacity: 0.5; cursor: not-allowed; }
+    .error-msg { color: var(--error); font-size: 13px; text-align: center; margin-top: 16px; }
+    .logo { display: block; width: 80px; margin: 0 auto 24px; }
+    .expired { text-align: center; padding: 20px; }
+  </style>
+</head>
+<body>
+  <div class="setup-card">
+    <img src="/assets/Wohm - Dark.png" alt="WOHM" class="logo">
+    <h1>Créer votre compte</h1>
+    <p class="subtitle" id="subtitle">Chargement...</p>
+
+    <div id="expired-msg" class="expired" style="display:none">
+      <p style="color:var(--error)">Cette invitation est invalide ou a expiré.</p>
+      <p style="margin-top:12px;font-size:13px;color:var(--text-muted)">Contactez l'administrateur pour recevoir une nouvelle invitation.</p>
+    </div>
+
+    <form id="setup-form" style="display:none">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="email" disabled>
+      </div>
+      <div class="form-group">
+        <label for="prenom">Prénom</label>
+        <input type="text" id="prenom" placeholder="Votre prénom" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" placeholder="Minimum 8 caractères" required minlength="8">
+      </div>
+      <div class="form-group">
+        <label for="password-confirm">Confirmer le mot de passe</label>
+        <input type="password" id="password-confirm" placeholder="Confirmez votre mot de passe" required>
+      </div>
+      <button type="submit" class="btn-setup" id="btn-submit">Créer mon compte</button>
+      <div class="error-msg" id="error-msg"></div>
+    </form>
+  </div>
+
+  <script>
+    // Force light mode
+    document.documentElement.classList.add('light');
+
+    var token = new URLSearchParams(window.location.search).get('token');
+    var form = document.getElementById('setup-form');
+    var subtitle = document.getElementById('subtitle');
+    var expiredMsg = document.getElementById('expired-msg');
+    var errorMsg = document.getElementById('error-msg');
+    var btn = document.getElementById('btn-submit');
+
+    if (!token) {
+      subtitle.style.display = 'none';
+      expiredMsg.style.display = 'block';
+    } else {
+      // Validate token
+      fetch('/api/admin/setup/' + token)
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(result) {
+          if (!result.ok) {
+            subtitle.style.display = 'none';
+            expiredMsg.style.display = 'block';
+          } else {
+            subtitle.textContent = 'Bienvenue ! Configurez votre compte admin.';
+            document.getElementById('email').value = result.data.email;
+            form.style.display = 'block';
+          }
+        })
+        .catch(function() {
+          subtitle.style.display = 'none';
+          expiredMsg.style.display = 'block';
+        });
+    }
+
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      errorMsg.textContent = '';
+
+      var password = document.getElementById('password').value;
+      var passwordConfirm = document.getElementById('password-confirm').value;
+
+      if (password !== passwordConfirm) {
+        errorMsg.textContent = 'Les mots de passe ne correspondent pas.';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      try {
+        var res = await fetch('/api/admin/setup/' + token, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prenom: document.getElementById('prenom').value.trim(),
+            password: password,
+          }),
+        });
+
+        var data = await res.json();
+        if (res.ok) {
+          window.location.href = '/admin/';
+        } else {
+          errorMsg.textContent = data.error || 'Une erreur est survenue.';
+        }
+      } catch (err) {
+        errorMsg.textContent = 'Erreur réseau.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Créer mon compte';
+      }
+    });
+  </script>
+</body>
+</html>

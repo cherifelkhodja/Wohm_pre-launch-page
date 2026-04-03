@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WOHM Admin — Candidatures</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="/admin/shared.js"></script>
+</head>
+<body>
+  <div class="admin-main">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <h1>Candidatures</h1>
+      <div style="display:flex;gap:8px">
+        <select id="filter-status" class="btn btn-secondary" style="cursor:pointer">
+          <option value="">Tous les statuts</option>
+          <option value="new">Nouveau</option>
+          <option value="contacte">Contacté</option>
+          <option value="entretien">Entretien</option>
+          <option value="valide">Validé</option>
+          <option value="refuse">Refusé</option>
+        </select>
+        <select id="filter-job" class="btn btn-secondary" style="cursor:pointer">
+          <option value="">Toutes les offres</option>
+          <option value="spontanee">Candidatures spontanées</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Candidat</th>
+            <th>Poste</th>
+            <th>Offre</th>
+            <th>Statut</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="applications-table"></tbody>
+      </table>
+      <div id="empty-state" class="empty-state" style="display:none">
+        Aucune candidature pour le moment.
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-overlay" id="detail-modal" style="display:none">
+    <div class="modal" style="max-width:640px">
+      <h2 id="detail-name"></h2>
+      <div id="detail-content"></div>
+      <div style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap" id="detail-actions"></div>
+    </div>
+  </div>
+
+  <!-- Rejection Modal -->
+  <div class="modal-overlay" id="reject-modal" style="display:none">
+    <div class="modal" style="max-width:440px">
+      <h2>Refuser la candidature</h2>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">La raison du refus sera enregistrée pour un futur email au candidat.</p>
+      <div class="form-group">
+        <label for="rejection-reason">Raison du refus *</label>
+        <textarea id="rejection-reason" rows="4" placeholder="Expliquez la raison du refus..." required></textarea>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" id="btn-cancel-reject">Annuler</button>
+        <button class="btn btn-danger" id="btn-reject">Confirmer le refus</button>
+      </div>
+      <div style="color:var(--error);font-size:13px;margin-top:8px" id="reject-error"></div>
+    </div>
+  </div>
+
+  <script>
+    injectAdminStyles();
+    renderAdminNav('/admin/applications.html');
+
+    var applications = [];
+    var currentAppId = null;
+
+    async function loadJobFilter() {
+      try {
+        var res = await fetchAPI('/api/admin/jobs');
+        var jobs = await res.json();
+        var select = document.getElementById('filter-job');
+        jobs.forEach(function(j) {
+          var opt = document.createElement('option');
+          opt.value = j.id;
+          opt.textContent = j.title;
+          select.appendChild(opt);
+        });
+      } catch (err) { console.error('Load job filter error:', err); }
+    }
+
+    async function loadApplications() {
+      try {
+        var status = document.getElementById('filter-status').value;
+        var jobId = document.getElementById('filter-job').value;
+        var params = new URLSearchParams();
+        if (status) params.set('status', status);
+        if (jobId === 'spontanee') params.set('spontaneous', '1');
+        else if (jobId) params.set('job_id', jobId);
+
+        var res = await fetchAPI('/api/admin/applications?' + params.toString());
+        applications = await res.json();
+        renderApplications();
+      } catch (err) { console.error('Load applications error:', err); }
+    }
+
+    var statutProLabels = { 'salarie': 'Salarié', 'stagiaire': 'Stagiaire', 'alternant': 'Alternant' };
+    var disponibiliteLabels = { 'immediate': 'Immédiate', '1_mois': '1 mois', '2_mois': '2 mois', '3_mois': '3 mois', 'plus_3_mois': '+3 mois' };
+    var anglaisLabels = { 'debutant': 'Débutant', 'intermediaire': 'Intermédiaire', 'avance': 'Avancé', 'courant': 'Courant', 'bilingue': 'Bilingue' };
+
+    function renderApplications() {
+      var tbody = document.getElementById('applications-table');
+      var empty = document.getElementById('empty-state');
+
+      if (applications.length === 0) {
+        tbody.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
+      tbody.innerHTML = applications.map(function(a) {
+        var newBadge = a.is_new ? '<span class="badge-new"></span>' : '';
+        return '<tr style="cursor:pointer" data-action="open" data-id="' + a.id + '">' +
+          '<td>' + newBadge + '</td>' +
+          '<td><strong>' + escapeHtml(a.prenom) + ' ' + escapeHtml(a.nom) + '</strong><br><span style="font-size:12px;color:var(--text-muted)">' + escapeHtml(a.email) + '</span></td>' +
+          '<td>' + escapeHtml(a.poste_actuel) + '</td>' +
+          '<td>' + (a.job_title ? escapeHtml(a.job_title) : '<span style="font-style:italic;color:var(--blue)">Spontan\u00e9e</span>') + '</td>' +
+          '<td>' + statusBadge(a.status) + '</td>' +
+          '<td style="font-size:13px;color:var(--text-muted)">' + formatDateShort(a.created_at) + '</td>' +
+          '<td><button class="btn btn-sm btn-secondary" data-action="open" data-id="' + a.id + '">Voir</button></td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    async function openDetail(id) {
+      currentAppId = id;
+      var res = await fetchAPI('/api/admin/applications/' + id);
+      var app = await res.json();
+
+      document.getElementById('detail-name').textContent = (app.civilite ? app.civilite + ' ' : '') + app.prenom + ' ' + app.nom;
+
+      var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:14px">';
+      html += '<div><strong style="color:var(--text-muted);font-size:12px">Email</strong><br>' + escapeHtml(app.email) + '</div>';
+      html += '<div><strong style="color:var(--text-muted);font-size:12px">Téléphone</strong><br>' + escapeHtml(app.telephone) + '</div>';
+      html += '<div><strong style="color:var(--text-muted);font-size:12px">Poste</strong><br>' + escapeHtml(app.poste_actuel) + '</div>';
+      html += '<div><strong style="color:var(--text-muted);font-size:12px">Statut pro</strong><br>' + escapeHtml(statutProLabels[app.statut_pro] || app.statut_pro) + '</div>';
+      html += '<div><strong style="color:var(--text-muted);font-size:12px">Expérience</strong><br>' + (app.annees_experience != null ? app.annees_experience + ' an(s)' : '\u2014') + '</div>';
+
+      if (app.statut_pro === 'salarie') {
+        html += '<div><strong style="color:var(--text-muted);font-size:12px">Salaire actuel</strong><br>' + (app.salaire_actuel ? app.salaire_actuel.toLocaleString() + ' \u20AC/an' : '\u2014') + '</div>';
+        html += '<div><strong style="color:var(--text-muted);font-size:12px">Salaire souhaité</strong><br>' + (app.salaire_souhaite ? app.salaire_souhaite.toLocaleString() + ' \u20AC/an' : '\u2014') + '</div>';
+      }
+      if (app.statut_pro === 'stagiaire' || app.statut_pro === 'alternant') {
+        html += '<div><strong style="color:var(--text-muted);font-size:12px">Durée</strong><br>' + escapeHtml(app.duree_stage || '\u2014') + '</div>';
+        html += '<div><strong style="color:var(--text-muted);font-size:12px">École</strong><br>' + escapeHtml(app.ecole || '\u2014') + '</div>';
+        html += '<div><strong style="color:var(--text-muted);font-size:12px">Début souhaité</strong><br>' + (app.date_debut_souhaitee ? formatDateShort(app.date_debut_souhaitee) : '\u2014') + '</div>';
+      }
+
+      html += '<div><strong style="color:var(--text-muted);font-size:12px">Disponibilité</strong><br>' + escapeHtml(disponibiliteLabels[app.disponibilite] || app.disponibilite) + '</div>';
+      html += '<div><strong style="color:var(--text-muted);font-size:12px">Anglais</strong><br>' + escapeHtml(anglaisLabels[app.niveau_anglais] || app.niveau_anglais) + '</div>';
+      html += '<div><strong style="color:var(--text-muted);font-size:12px">Offre</strong><br>' + escapeHtml(app.job_title || 'Candidature spontanée') + '</div>';
+      html += '</div>';
+
+      html += '<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">';
+      html += '<strong style="color:var(--text-muted);font-size:12px">Statut</strong><br>' + statusBadge(app.status);
+      if (app.rejection_reason) {
+        html += '<div style="margin-top:8px;font-size:13px;color:var(--text-muted)"><strong>Raison du refus :</strong> ' + escapeHtml(app.rejection_reason) + '</div>';
+      }
+      html += '</div>';
+
+      html += '<div style="margin-top:12px"><button class="btn btn-sm btn-primary" data-action="download-cv">Télécharger le CV</button>';
+      if (app.cv_original_name) html += ' <span style="font-size:12px;color:var(--text-muted)">' + escapeHtml(app.cv_original_name) + '</span>';
+      html += '</div>';
+
+      document.getElementById('detail-content').innerHTML = html;
+
+      // Status transition buttons
+      var transitions = {
+        'new': [{ status: 'contacte', label: 'Marquer contacté', cls: 'btn-secondary' }, { status: 'refuse', label: 'Refuser', cls: 'btn-danger' }],
+        'contacte': [{ status: 'entretien', label: 'Planifier entretien', cls: 'btn-secondary' }, { status: 'refuse', label: 'Refuser', cls: 'btn-danger' }],
+        'entretien': [{ status: 'valide', label: 'Valider', cls: 'btn-primary' }, { status: 'refuse', label: 'Refuser', cls: 'btn-danger' }],
+        'valide': [],
+        'refuse': [],
+      };
+
+      var actions = (transitions[app.status] || []).map(function(t) {
+        return '<button class="btn ' + t.cls + '" data-action="status" data-status="' + t.status + '">' + t.label + '</button>';
+      }).join('');
+      actions += '<button class="btn btn-secondary" data-action="close-detail" style="margin-left:auto">Fermer</button>';
+      document.getElementById('detail-actions').innerHTML = actions;
+
+      document.getElementById('detail-modal').style.display = 'flex';
+      loadApplications();
+    }
+
+    function closeDetail() {
+      document.getElementById('detail-modal').style.display = 'none';
+      currentAppId = null;
+    }
+
+    async function downloadCV() {
+      var res = await fetchAPI('/api/admin/applications/' + currentAppId + '/cv');
+      var data = await res.json();
+      if (data.url) window.open(data.url, '_blank');
+    }
+
+    async function changeStatus(status) {
+      var res = await fetchAPI('/api/admin/applications/' + currentAppId + '/status', {
+        method: 'PATCH',
+        body: { status: status },
+      });
+      if (res.ok) {
+        closeDetail();
+        loadApplications();
+      } else {
+        var data = await res.json();
+        alert(data.error || 'Erreur.');
+      }
+    }
+
+    function openReject() {
+      document.getElementById('rejection-reason').value = '';
+      document.getElementById('reject-error').textContent = '';
+      document.getElementById('reject-modal').style.display = 'flex';
+    }
+
+    function closeReject() {
+      document.getElementById('reject-modal').style.display = 'none';
+    }
+
+    async function confirmReject() {
+      var reason = document.getElementById('rejection-reason').value.trim();
+      if (!reason) {
+        document.getElementById('reject-error').textContent = 'La raison est obligatoire.';
+        return;
+      }
+      var btn = document.getElementById('btn-reject');
+      btn.disabled = true;
+      var res = await fetchAPI('/api/admin/applications/' + currentAppId + '/status', {
+        method: 'PATCH',
+        body: { status: 'refuse', rejection_reason: reason },
+      });
+      btn.disabled = false;
+      if (res.ok) {
+        closeReject();
+        closeDetail();
+        loadApplications();
+      } else {
+        var data = await res.json();
+        document.getElementById('reject-error').textContent = data.error || 'Erreur.';
+      }
+    }
+
+    // Event delegation: applications table
+    document.getElementById('applications-table').addEventListener('click', function(e) {
+      var el = e.target.closest('[data-action]');
+      if (!el) return;
+      if (el.getAttribute('data-action') === 'open') {
+        e.stopPropagation();
+        openDetail(el.getAttribute('data-id'));
+      }
+    });
+
+    // Event delegation: detail modal
+    document.getElementById('detail-modal').addEventListener('click', function(e) {
+      if (e.target === document.getElementById('detail-modal')) { closeDetail(); return; }
+      var el = e.target.closest('[data-action]');
+      if (!el) return;
+      var action = el.getAttribute('data-action');
+      if (action === 'download-cv') downloadCV();
+      if (action === 'close-detail') closeDetail();
+      if (action === 'status') {
+        var st = el.getAttribute('data-status');
+        if (st === 'refuse') openReject();
+        else changeStatus(st);
+      }
+    });
+
+    // Reject modal
+    document.getElementById('reject-modal').addEventListener('click', function(e) {
+      if (e.target === document.getElementById('reject-modal')) closeReject();
+    });
+    document.getElementById('btn-cancel-reject').addEventListener('click', closeReject);
+    document.getElementById('btn-reject').addEventListener('click', confirmReject);
+
+    // Filters
+    document.getElementById('filter-status').addEventListener('change', loadApplications);
+    document.getElementById('filter-job').addEventListener('change', loadApplications);
+
+    loadJobFilter();
+    loadApplications();
+  </script>
+</body>
+</html>

@@ -657,6 +657,34 @@ html.light .key-figure:hover{
   </div>
 </section>
 
+<!-- ========== ON RECRUTE ========== -->
+<section class="hiring-section" id="hiring-section" style="display:none">
+  <div class="hiring-inner">
+    <p class="section-label sr" data-sr>On recrute</p>
+    <p class="hiring-text sr" data-sr>
+      Nous construisons notre équipe. Rejoignez l'aventure WOHM.
+    </p>
+    <div class="hiring-cards" id="hiring-cards"></div>
+    <div class="hiring-cta sr" data-sr>
+      <a href="/jobs.html" class="hiring-link">Voir toutes les offres &rarr;</a>
+    </div>
+  </div>
+</section>
+<style>
+.hiring-section{padding:80px 24px;text-align:center}
+.hiring-inner{max-width:900px;margin:0 auto}
+.hiring-text{font-size:clamp(16px,2.5vw,20px);line-height:1.7;color:var(--silver);margin-bottom:32px}
+.hiring-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:24px}
+.hiring-card{background:var(--surface);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:24px;text-align:left;text-decoration:none;color:inherit;transition:border-color 0.2s}
+.hiring-card:hover{border-color:var(--accent)}
+.hiring-card h3{font-size:16px;font-weight:600;margin-bottom:8px;color:var(--white)}
+.hiring-card-meta{font-size:13px;color:var(--silver);display:flex;gap:8px;flex-wrap:wrap}
+.hiring-card-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;background:rgba(46,163,224,0.12);color:var(--accent)}
+.hiring-link{display:inline-block;color:var(--accent);font-weight:500;text-decoration:none;font-size:15px}
+.hiring-link:hover{text-decoration:underline}
+@media(max-width:639px){.hiring-section{padding:60px 16px}}
+</style>
+
 <!-- ========== BEAT 4 : CTA ========== -->
 <section class="cta-section">
   <!-- Countdown -->
@@ -684,7 +712,7 @@ html.light .key-figure:hover{
         <input type="text" id="vehicule-input" placeholder="Voiture (ex: Tesla Model 3)" aria-label="Votre voiture électrique">
       </div>
     </div>
-    <button class="submit-btn" onclick="handleSubmit()" aria-label="S'inscrire à la liste d'attente">M'INSCRIRE</button>
+    <button class="submit-btn" id="submit-btn" aria-label="S'inscrire à la liste d'attente">M'INSCRIRE</button>
   </div>
   <div class="form-success" id="form-success">
     &#10003; Vous serez parmi les premiers informés.
@@ -793,7 +821,8 @@ function flashError(id) {
   el.focus();
   setTimeout(function() { el.style.borderColor = ''; el.style.boxShadow = ''; }, 2000);
 }
-// Enter key on any field
+// Submit button + enter key
+document.getElementById('submit-btn').addEventListener('click', handleSubmit);
 document.querySelectorAll('#email-form input').forEach(function(input) {
   input.addEventListener('keydown', function(e) { if (e.key === 'Enter') handleSubmit(); });
 });
@@ -821,6 +850,29 @@ document.querySelectorAll('#email-form input').forEach(function(input) {
     });
   }, { threshold: 0.3 });
   countObserver.observe(yearsEl);
+})();
+// ===== LOAD JOB POSTINGS =====
+(function() {
+  fetch('/api/jobs')
+    .then(function(r) { return r.ok ? r.json() : []; })
+    .then(function(jobs) {
+      if (!jobs || jobs.length === 0) return;
+      var section = document.getElementById('hiring-section');
+      var cards = document.getElementById('hiring-cards');
+      var display = jobs.slice(0, 3); // show max 3
+      cards.innerHTML = display.map(function(j) {
+        var meta = '';
+        if (j.location) meta += '<span>' + j.location + '</span>';
+        meta += '<span class="hiring-card-tag">' + j.contract_type + '</span>';
+        if (j.experience_level) meta += '<span class="hiring-card-tag">' + j.experience_level + '</span>';
+        return '<a href="/jobs/' + j.slug + '" class="hiring-card">' +
+          '<h3>' + j.title + '</h3>' +
+          '<div class="hiring-card-meta">' + meta + '</div>' +
+        '</a>';
+      }).join('');
+      section.style.display = 'block';
+    })
+    .catch(function() {});
 })();
 </script>
 </body>

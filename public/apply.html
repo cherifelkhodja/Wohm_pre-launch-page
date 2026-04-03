@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="fr" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WOHM — Postuler</title>
+  <meta name="description" content="Postulez chez WOHM, centre d'ingénierie spécialisé dans la réparation de voitures électriques.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --blue: #2EA3E0; --deep: #060A13; --surface: #0B1120; --text: #E8EDF5; --text-muted: #8A94A6; --border: #1A2235; --error: #E74C3C; --success: #27AE60; }
+    html.light { --deep: #F5F7FA; --surface: #FFFFFF; --text: #1A1A2E; --text-muted: #6B7280; --border: #E5E7EB; }
+    html.light .form-group input, html.light .form-group select, html.light .form-group textarea { background: #F9FAFB; border-color: #E5E7EB; color: #1A1A2E; }
+    html.light .statut-option { background: #F9FAFB; border-color: #E5E7EB; }
+    html.light .statut-option.selected { background: #2EA3E010; }
+    html.light .file-drop { border-color: #D1D5DB; }
+    html.light .file-drop:hover, html.light .file-drop.drag-over { border-color: var(--blue); background: #2EA3E008; }
+    html.light .form-card { background: #FFFFFF; border-color: #E5E7EB; }
+    .phone-input { display: flex; gap: 0; }
+    .phone-country { position: relative; display: flex; align-items: center; gap: 4px; padding: 10px 10px; background: var(--deep); border: 1px solid var(--border); border-radius: 6px 0 0 6px; border-right: none; cursor: pointer; user-select: none; }
+    .phone-flag { font-size: 20px; line-height: 1; }
+    .phone-arrow { font-size: 10px; color: var(--text-muted); }
+    .phone-input input[type="tel"] { flex: 1; border-radius: 0 6px 6px 0; }
+    .phone-dropdown { display: none; position: absolute; top: 100%; left: 0; min-width: 240px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 50; max-height: 260px; overflow-y: auto; margin-top: 4px; }
+    .phone-dropdown.open { display: block; }
+    .phone-option { padding: 10px 14px; font-size: 14px; cursor: pointer; transition: background 0.1s; }
+    .phone-option:hover { background: var(--border); }
+    html.light .phone-country { background: #F9FAFB; border-color: #E5E7EB; }
+    html.light .phone-dropdown { background: #FFFFFF; border-color: #E5E7EB; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    html.light .phone-option:hover { background: #F3F4F6; }
+    body { font-family: 'Outfit', sans-serif; background: var(--deep); color: var(--text); min-height: 100vh; }
+    .container { max-width: 700px; margin: 0 auto; padding: 60px 24px 80px; }
+    .back-link { display: inline-block; color: var(--blue); text-decoration: none; font-size: 14px; margin-bottom: 32px; }
+    .back-link:hover { text-decoration: underline; }
+    h1 { font-size: clamp(24px, 4vw, 32px); font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
+    .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; }
+    .form-section-title { font-size: 13px; font-weight: 600; color: var(--blue); text-transform: uppercase; letter-spacing: 0.5px; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .form-section-title:first-child { margin-top: 0; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 4px; }
+    .form-group label .req { color: var(--blue); }
+    .form-group input:not([type="radio"]):not([type="file"]), .form-group select, .form-group textarea {
+      width: 100%; padding: 10px 12px; background: var(--deep); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--blue); }
+    .form-group input.error, .form-group select.error { border-color: var(--error); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .radio-group { display: flex; gap: 20px; margin-top: 4px; }
+    .radio-group label { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text); font-size: 14px; }
+    .radio-group input[type="radio"] { width: auto; }
+    .statut-options { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+    .statut-option { display: grid; grid-template-columns: 24px 1fr; align-items: center; gap: 10px; padding: 14px 16px; background: var(--deep); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: border-color 0.2s; }
+    .statut-option input[type="radio"] { display: none; }
+    .statut-option:hover { border-color: var(--blue); }
+    .statut-option.selected { border-color: var(--blue); background: #2EA3E010; }
+    .statut-option .radio-circle { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .statut-option.selected .radio-circle { border-color: var(--blue); }
+    .statut-option.selected .radio-circle::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--blue); }
+    .statut-option .statut-label { font-size: 14px; font-weight: 500; }
+    .statut-option .statut-desc { font-size: 12px; color: var(--text-muted); }
+    .conditional-fields { display: none; margin-top: 16px; padding: 20px; background: #27AE6008; border-radius: 8px; border: 1px solid #27AE6020; }
+    .conditional-fields.visible { display: block; }
+    .conditional-fields .section-label { font-size: 13px; font-weight: 600; color: var(--success); margin-bottom: 12px; }
+    .file-drop { border: 2px dashed var(--border); border-radius: 8px; padding: 32px 20px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+    .file-drop:hover, .file-drop.drag-over { border-color: var(--blue); background: #2EA3E008; }
+    .file-drop .file-icon { font-size: 24px; color: var(--text-muted); margin-bottom: 8px; }
+    .file-drop .file-text { font-size: 14px; color: var(--text-muted); }
+    .file-drop .file-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .file-drop .file-name { font-size: 14px; color: var(--success); font-weight: 500; margin-top: 8px; }
+    .file-drop input[type="file"] { display: none; }
+    .btn-submit { width: 100%; padding: 16px; background: var(--blue); color: #fff; border: none; border-radius: 8px; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; margin-top: 24px; }
+    .btn-submit:hover { opacity: 0.9; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .error-msg { color: var(--error); font-size: 13px; text-align: center; margin-top: 12px; }
+    .success-msg { text-align: center; padding: 48px 20px; }
+    .success-msg h2 { color: var(--success); font-size: 24px; margin-bottom: 12px; }
+    .success-msg p { color: var(--text-muted); }
+    @media (max-width: 639px) { .container { padding: 40px 16px; } .form-row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/jobs.html" class="back-link" id="back-link">&larr; Retour aux offres</a>
+    <h1 id="page-title">Postuler</h1>
+    <p class="subtitle" id="job-info"></p>
+
+    <div class="form-card" id="form-card">
+      <form id="apply-form" enctype="multipart/form-data">
+        <input type="hidden" id="job_posting_id" name="job_posting_id">
+
+        <!-- Identité -->
+        <div class="form-section-title">Identité</div>
+        <div class="form-group">
+          <label>Civilité</label>
+          <div class="radio-group">
+            <label><input type="radio" name="civilite" value="M."> M.</label>
+            <label><input type="radio" name="civilite" value="Mme"> Mme</label>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="prenom">Prénom <span class="req">*</span></label>
+            <input type="text" id="prenom" name="prenom" placeholder="Jean" required>
+          </div>
+          <div class="form-group">
+            <label for="nom">Nom <span class="req">*</span></label>
+            <input type="text" id="nom" name="nom" placeholder="DUPONT" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">Email <span class="req">*</span></label>
+            <input type="email" id="email" name="email" placeholder="jean.dupont@email.com" required>
+          </div>
+          <div class="form-group">
+            <label for="telephone">Téléphone <span class="req">*</span></label>
+            <div class="phone-input">
+              <div class="phone-country" id="phone-country-btn">
+                <span class="phone-flag" id="phone-flag">&#127467;&#127479;</span>
+                <span class="phone-arrow">&#9662;</span>
+                <div class="phone-dropdown" id="phone-dropdown">
+                  <div class="phone-option" data-code="+33" data-flag="&#127467;&#127479;">&#127467;&#127479; France (+33)</div>
+                  <div class="phone-option" data-code="+32" data-flag="&#127463;&#127466;">&#127463;&#127466; Belgique (+32)</div>
+                  <div class="phone-option" data-code="+41" data-flag="&#127464;&#127469;">&#127464;&#127469; Suisse (+41)</div>
+                  <div class="phone-option" data-code="+352" data-flag="&#127473;&#127482;">&#127473;&#127482; Luxembourg (+352)</div>
+                  <div class="phone-option" data-code="+44" data-flag="&#127468;&#127463;">&#127468;&#127463; Royaume-Uni (+44)</div>
+                  <div class="phone-option" data-code="+49" data-flag="&#127465;&#127466;">&#127465;&#127466; Allemagne (+49)</div>
+                  <div class="phone-option" data-code="+34" data-flag="&#127466;&#127480;">&#127466;&#127480; Espagne (+34)</div>
+                  <div class="phone-option" data-code="+39" data-flag="&#127470;&#127481;">&#127470;&#127481; Italie (+39)</div>
+                  <div class="phone-option" data-code="+351" data-flag="&#127477;&#127481;">&#127477;&#127481; Portugal (+351)</div>
+                  <div class="phone-option" data-code="+212" data-flag="&#127474;&#127462;">&#127474;&#127462; Maroc (+212)</div>
+                  <div class="phone-option" data-code="+216" data-flag="&#127481;&#127475;">&#127481;&#127475; Tunisie (+216)</div>
+                  <div class="phone-option" data-code="+213" data-flag="&#127465;&#127487;">&#127465;&#127487; Algérie (+213)</div>
+                </div>
+              </div>
+              <input type="tel" id="telephone-number" placeholder="6 12 34 56 78" required>
+              <input type="hidden" id="telephone" name="telephone" value="+33">
+            </div>
+          </div>
+        </div>
+
+        <!-- Profil professionnel -->
+        <div class="form-section-title">Profil professionnel</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="poste_actuel">Titre du poste actuel/recherché <span class="req">*</span></label>
+            <input type="text" id="poste_actuel" name="poste_actuel" placeholder="ex: Ingénieur Batteries" required>
+          </div>
+          <div class="form-group">
+            <label for="annees_experience">Années d'expérience <span class="req">*</span></label>
+            <input type="number" id="annees_experience" name="annees_experience" placeholder="3" min="0" max="50" required>
+          </div>
+        </div>
+        <div class="form-group" id="statut-group">
+          <label>Statut professionnel <span class="req">*</span></label>
+          <div class="statut-options" id="statut-options">
+            <label class="statut-option" data-statut="salarie">
+              <input type="radio" name="statut_pro" value="salarie" required>
+              <span class="radio-circle"></span>
+              <div><div class="statut-label">Salarié</div><div class="statut-desc">Vous recherchez un contrat CDI ou CDD</div></div>
+            </label>
+            <label class="statut-option" data-statut="stagiaire">
+              <input type="radio" name="statut_pro" value="stagiaire">
+              <span class="radio-circle"></span>
+              <div><div class="statut-label">Stagiaire</div><div class="statut-desc">Vous recherchez un stage</div></div>
+            </label>
+            <label class="statut-option" data-statut="alternant">
+              <input type="radio" name="statut_pro" value="alternant">
+              <span class="radio-circle"></span>
+              <div><div class="statut-label">Alternant</div><div class="statut-desc">Vous recherchez une alternance</div></div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Conditional: Salarié -->
+        <div class="conditional-fields" id="fields-salarie">
+          <div class="section-label">Salaire annuel brut (Salarié)</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="salaire_actuel">Salaire actuel (€/an) <span class="req">*</span></label>
+              <input type="text" id="salaire_actuel_display" inputmode="numeric" placeholder="45 000">
+              <input type="hidden" id="salaire_actuel" name="salaire_actuel">
+            </div>
+            <div class="form-group">
+              <label for="salaire_souhaite">Salaire souhaité (€/an) <span class="req">*</span></label>
+              <input type="text" id="salaire_souhaite_display" inputmode="numeric" placeholder="50 000">
+              <input type="hidden" id="salaire_souhaite" name="salaire_souhaite">
+            </div>
+          </div>
+        </div>
+
+        <!-- Conditional: Stagiaire/Alternant -->
+        <div class="conditional-fields" id="fields-stage">
+          <div class="section-label">Informations stage/alternance</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="duree_stage_num">Durée <span class="req">*</span></label>
+              <div style="display:flex;gap:0">
+                <input type="number" id="duree_stage_num" placeholder="6" min="1" max="36" style="border-radius:6px 0 0 6px;border-right:none;width:80px;flex-shrink:0">
+                <select id="duree_stage_unit" style="border-radius:0 6px 6px 0;flex:1">
+                  <option value="mois">Mois</option>
+                  <option value="an">An(s)</option>
+                </select>
+              </div>
+              <input type="hidden" id="duree_stage" name="duree_stage">
+            </div>
+            <div class="form-group">
+              <label for="ecole">École / Formation <span class="req">*</span></label>
+              <input type="text" id="ecole" name="ecole" placeholder="ex: ENSAM Paris">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="date_debut_souhaitee">Date de début souhaitée <span class="req">*</span></label>
+            <input type="date" id="date_debut_souhaitee" name="date_debut_souhaitee">
+          </div>
+        </div>
+
+        <!-- Disponibilité & Anglais -->
+        <div class="form-section-title">Disponibilité & Compétences</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="disponibilite">Disponibilité <span class="req">*</span></label>
+            <select id="disponibilite" name="disponibilite" required>
+              <option value="">-- Sélectionner --</option>
+              <option value="immediate">Immédiate</option>
+              <option value="1_mois">1 mois</option>
+              <option value="2_mois">2 mois</option>
+              <option value="3_mois">3 mois</option>
+              <option value="plus_3_mois">+3 mois</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="niveau_anglais">Niveau d'anglais <span class="req">*</span></label>
+            <select id="niveau_anglais" name="niveau_anglais" required>
+              <option value="">-- Sélectionner --</option>
+              <option value="debutant">Débutant</option>
+              <option value="intermediaire">Intermédiaire</option>
+              <option value="avance">Avancé</option>
+              <option value="courant">Courant</option>
+              <option value="bilingue">Bilingue</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- CV Upload -->
+        <div class="form-section-title">CV</div>
+        <div class="form-group">
+          <label>CV (PDF ou Word, max 10 Mo) <span class="req">*</span></label>
+          <div class="file-drop" id="file-drop">
+            <div class="file-icon">&#8593;</div>
+            <div class="file-text">Cliquez pour télécharger ou glissez-déposez</div>
+            <div class="file-hint">PDF ou Word (max 10 Mo)</div>
+            <div class="file-name" id="file-name" style="display:none"></div>
+            <input type="file" id="cv" name="cv" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btn-submit">Envoyer ma candidature</button>
+        <div class="error-msg" id="error-msg"></div>
+      </form>
+    </div>
+
+    <div class="success-msg" id="success-msg" style="display:none">
+      <h2>Candidature envoyée !</h2>
+      <p>Merci pour votre candidature. Nous l'étudierons avec attention et reviendrons vers vous rapidement.</p>
+      <p style="margin-top:20px"><a href="/jobs.html" style="color:var(--blue)">Voir d'autres offres</a></p>
+    </div>
+  </div>
+
+  <script>
+    // Phone country selector
+    var phoneCode = '+33';
+    var phoneCountryBtn = document.getElementById('phone-country-btn');
+    var phoneDropdown = document.getElementById('phone-dropdown');
+    var phoneFlag = document.getElementById('phone-flag');
+    var phoneNumberInput = document.getElementById('telephone-number');
+    var phoneHidden = document.getElementById('telephone');
+
+    phoneCountryBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      phoneDropdown.classList.toggle('open');
+    });
+
+    document.querySelectorAll('.phone-option').forEach(function(opt) {
+      opt.addEventListener('click', function(e) {
+        e.stopPropagation();
+        phoneCode = this.getAttribute('data-code');
+        phoneFlag.innerHTML = this.getAttribute('data-flag');
+        phoneDropdown.classList.remove('open');
+        updatePhoneValue();
+        phoneNumberInput.focus();
+      });
+    });
+
+    document.addEventListener('click', function() {
+      phoneDropdown.classList.remove('open');
+    });
+
+    function formatPhoneNumber(raw) {
+      var digits = raw.replace(/[^\d]/g, '');
+      // Format: X XX XX XX XX (French style grouping)
+      var parts = [];
+      for (var i = 0; i < digits.length && i < 10; i++) {
+        if (i === 1 || (i > 1 && (i - 1) % 2 === 0)) parts.push(' ');
+        parts.push(digits[i]);
+      }
+      return parts.join('');
+    }
+
+    function updatePhoneValue() {
+      var digits = phoneNumberInput.value.replace(/[^\d]/g, '');
+      phoneHidden.value = phoneCode + digits;
+    }
+
+    // Salary fields: thousand separator formatting
+    function formatSalary(input, hidden) {
+      input.addEventListener('input', function() {
+        var digits = this.value.replace(/[^\d]/g, '');
+        hidden.value = digits;
+        if (digits) {
+          this.value = parseInt(digits, 10).toLocaleString('fr-FR');
+        }
+      });
+    }
+    formatSalary(document.getElementById('salaire_actuel_display'), document.getElementById('salaire_actuel'));
+    formatSalary(document.getElementById('salaire_souhaite_display'), document.getElementById('salaire_souhaite'));
+
+    // Duration field: combine number + unit
+    var dureeNum = document.getElementById('duree_stage_num');
+    var dureeUnit = document.getElementById('duree_stage_unit');
+    var dureeHidden = document.getElementById('duree_stage');
+    function updateDuree() {
+      var n = dureeNum.value;
+      var u = dureeUnit.value;
+      dureeHidden.value = n ? n + ' ' + u : '';
+    }
+    dureeNum.addEventListener('input', updateDuree);
+    dureeUnit.addEventListener('change', updateDuree);
+
+    phoneNumberInput.addEventListener('input', function() {
+      var cursorPos = this.selectionStart;
+      var oldLen = this.value.length;
+      this.value = formatPhoneNumber(this.value);
+      var newLen = this.value.length;
+      var newPos = cursorPos + (newLen - oldLen);
+      this.setSelectionRange(newPos, newPos);
+      updatePhoneValue();
+    });
+
+    // Load job info if applying to a specific job
+    var params = new URLSearchParams(window.location.search);
+    var jobSlug = params.get('job');
+    // Map contract_type to statut_pro
+    var contractToStatut = {
+      'CDI': 'salarie',
+      'CDD': 'salarie',
+      'Stage': 'stagiaire',
+      'Alternance': 'alternant',
+    };
+
+    function filterStatutOptions(contractType) {
+      if (!contractType) return;
+      var statut = contractToStatut[contractType];
+      if (!statut) return;
+
+      document.querySelectorAll('.statut-option').forEach(function(opt) {
+        if (opt.getAttribute('data-statut') === statut) {
+          opt.style.display = 'grid';
+          opt.classList.add('selected');
+          opt.querySelector('input[type="radio"]').checked = true;
+        } else {
+          opt.style.display = 'none';
+        }
+      });
+
+      document.getElementById('fields-salarie').classList.toggle('visible', statut === 'salarie');
+      document.getElementById('fields-stage').classList.toggle('visible', statut === 'stagiaire' || statut === 'alternant');
+      document.getElementById('statut-group').style.display = 'none';
+    }
+
+    if (jobSlug) {
+      fetch('/api/jobs/' + encodeURIComponent(jobSlug))
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .catch(function() { return null; })
+        .then(function(job) {
+          if (job) {
+            document.getElementById('job_posting_id').value = job.id;
+            document.getElementById('page-title').textContent = 'Postuler \u2014 ' + job.title;
+            document.getElementById('job-info').textContent = job.title + (job.location ? ' \u2022 ' + job.location : '');
+            document.getElementById('back-link').href = '/jobs/' + job.slug;
+            document.getElementById('back-link').textContent = '\u2190 Retour \u00e0 l\'offre';
+            filterStatutOptions(job.contract_type);
+          }
+        });
+    } else {
+      document.getElementById('page-title').textContent = 'Candidature spontanée';
+      document.getElementById('job-info').textContent = 'Envoyez-nous votre candidature, nous \u00e9tudierons votre profil.';
+    }
+
+    // Statut professionnel toggle
+    document.querySelectorAll('.statut-option').forEach(function(option) {
+      option.addEventListener('click', function() {
+        var statut = this.getAttribute('data-statut');
+        document.querySelectorAll('.statut-option').forEach(function(o) { o.classList.remove('selected'); });
+        this.classList.add('selected');
+        document.getElementById('fields-salarie').classList.toggle('visible', statut === 'salarie');
+        document.getElementById('fields-stage').classList.toggle('visible', statut === 'stagiaire' || statut === 'alternant');
+      });
+    });
+
+    // File drag & drop
+    var fileDrop = document.getElementById('file-drop');
+    var fileInput = document.getElementById('cv');
+    var fileName = document.getElementById('file-name');
+
+    fileDrop.addEventListener('click', function() { fileInput.click(); });
+    fileDrop.addEventListener('dragover', function(e) { e.preventDefault(); fileDrop.classList.add('drag-over'); });
+    fileDrop.addEventListener('dragleave', function() { fileDrop.classList.remove('drag-over'); });
+    fileDrop.addEventListener('drop', function(e) {
+      e.preventDefault();
+      fileDrop.classList.remove('drag-over');
+      if (e.dataTransfer.files.length > 0) {
+        fileInput.files = e.dataTransfer.files;
+        showFileName(e.dataTransfer.files[0].name);
+      }
+    });
+    fileInput.addEventListener('change', function() {
+      if (fileInput.files.length > 0) showFileName(fileInput.files[0].name);
+    });
+
+    function showFileName(name) {
+      fileName.textContent = name;
+      fileName.style.display = 'block';
+    }
+
+    // Form submission
+    var form = document.getElementById('apply-form');
+    var btn = document.getElementById('btn-submit');
+    var errorMsg = document.getElementById('error-msg');
+
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      errorMsg.textContent = '';
+      btn.disabled = true;
+      btn.textContent = 'Envoi en cours...';
+
+      if (!fileInput.files || fileInput.files.length === 0) {
+        errorMsg.textContent = 'Veuillez joindre votre CV.';
+        btn.disabled = false;
+        btn.textContent = 'Envoyer ma candidature';
+        return;
+      }
+
+      var formData = new FormData(form);
+
+      try {
+        var res = await fetch('/api/apply', {
+          method: 'POST',
+          body: formData,
+        });
+
+        var data = await res.json();
+
+        if (res.ok) {
+          document.getElementById('form-card').style.display = 'none';
+          document.getElementById('success-msg').style.display = 'block';
+        } else {
+          errorMsg.textContent = data.error || 'Une erreur est survenue.';
+        }
+      } catch (err) {
+        errorMsg.textContent = 'Erreur réseau. Réessayez.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Envoyer ma candidature';
+      }
+    });
+  </script>
+</body>
+</html>
