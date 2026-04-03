@@ -63,8 +63,8 @@
   </div>
 
   <script>
-    // Init theme
-    if (localStorage.getItem('admin-theme') === 'light') document.documentElement.classList.add('light');
+    // Force light mode
+    document.documentElement.classList.add('light');
 
     var token = new URLSearchParams(window.location.search).get('token');
     var form = document.getElementById('setup-form');

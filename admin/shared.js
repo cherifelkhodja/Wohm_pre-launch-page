@@ -77,29 +77,14 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-// Theme toggle
-function initThemeToggle() {
-  var stored = localStorage.getItem('admin-theme');
-  if (stored === 'light') {
-    document.documentElement.classList.add('light');
-  }
-}
-
-function toggleTheme() {
-  document.documentElement.classList.toggle('light');
-  var isLight = document.documentElement.classList.contains('light');
-  localStorage.setItem('admin-theme', isLight ? 'light' : 'dark');
-  // Update logo
-  var logos = document.querySelectorAll('.admin-nav-logo img');
-  logos.forEach(function(img) {
-    img.src = isLight ? '/assets/Wohm - Light.png' : '/assets/Wohm - Dark.png';
-  });
+// Force light mode on admin pages
+function initAdminTheme() {
+  document.documentElement.classList.add('light');
 }
 
 // Inject admin navigation sidebar
 function renderAdminNav(currentPage) {
-  initThemeToggle();
-  var isLight = document.documentElement.classList.contains('light');
+  initAdminTheme();
 
   var navItems = [
     { href: '/admin/', label: 'Dashboard', icon: '&#9636;' },
@@ -109,8 +94,7 @@ function renderAdminNav(currentPage) {
 
   var nav = document.createElement('nav');
   nav.className = 'admin-nav';
-  var logoSrc = isLight ? '/assets/Wohm - Light.png' : '/assets/Wohm - Dark.png';
-  var html = '<div class="admin-nav-logo"><img src="' + logoSrc + '" alt="WOHM" style="height:28px"></div>';
+  var html = '<div class="admin-nav-logo"><img src="/assets/Wohm - Light.png" alt="WOHM" style="height:28px"></div>';
   html += '<div class="admin-nav-links">';
   navItems.forEach(function(item) {
     var active = currentPage === item.href ? ' active' : '';
@@ -118,16 +102,11 @@ function renderAdminNav(currentPage) {
   });
   html += '</div>';
   html += '<div class="admin-nav-footer">';
-  html += '<button class="admin-nav-theme" id="btn-theme" title="Changer de thème">' + (isLight ? '&#127769;' : '&#9728;&#65039;') + '</button>';
   html += '<button class="admin-nav-logout" id="btn-logout">Déconnexion</button>';
   html += '</div>';
   nav.innerHTML = html;
   document.body.insertBefore(nav, document.body.firstChild);
 
-  document.getElementById('btn-theme').addEventListener('click', function() {
-    toggleTheme();
-    this.innerHTML = document.documentElement.classList.contains('light') ? '&#127769;' : '&#9728;&#65039;';
-  });
   document.getElementById('btn-logout').addEventListener('click', logout);
 }
 
