@@ -37,7 +37,7 @@
   </div>
 
   <!-- Create/Edit Modal -->
-  <div class="modal-overlay" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal-overlay" id="modal" style="display:none">
     <div class="modal">
       <h2 id="modal-title">Nouvelle offre</h2>
       <form id="job-form">
@@ -95,7 +95,7 @@
           <input type="text" id="skills" placeholder="ex: batteries, moteurs, diagnostic">
         </div>
         <div class="form-actions">
-          <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+          <button type="button" class="btn btn-secondary" id="btn-cancel">Annuler</button>
           <button type="submit" class="btn btn-primary" id="btn-submit">Créer</button>
         </div>
         <div style="color:var(--error);font-size:13px;text-align:center;margin-top:12px" id="form-error"></div>
@@ -242,6 +242,10 @@
     });
 
     document.getElementById('btn-new-job').addEventListener('click', openCreateModal);
+    document.getElementById('btn-cancel').addEventListener('click', closeModal);
+    document.getElementById('modal').addEventListener('click', function(e) {
+      if (e.target === document.getElementById('modal')) closeModal();
+    });
     loadJobs();
   </script>
 </body>
