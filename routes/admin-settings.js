@@ -7,6 +7,23 @@ const router = Router();
 
 const ALLOWED_SETTINGS_KEYS = ['company_presentation'];
 
+// GET /api/settings/company-presentation — public endpoint for job pages
+// Must be defined BEFORE the :key route so it matches first
+router.get('/settings/company-presentation', async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT value FROM site_settings WHERE key = 'company_presentation'"
+    );
+    if (result.rows.length === 0) {
+      return res.json({ value: null });
+    }
+    return res.json({ value: result.rows[0].value });
+  } catch (err) {
+    console.error('Get presentation error:', err.message);
+    return res.status(500).json({ error: 'Une erreur est survenue.' });
+  }
+});
+
 // GET /api/admin/settings/:key — read a setting
 router.get('/settings/:key', requireSession, async (req, res) => {
   try {
@@ -53,22 +70,6 @@ router.put('/settings/:key', requireSession, async (req, res) => {
     return res.json({ ok: true });
   } catch (err) {
     console.error('Update setting error:', err.message);
-    return res.status(500).json({ error: 'Une erreur est survenue.' });
-  }
-});
-
-// GET /api/settings/company-presentation — public endpoint for job pages
-router.get('/settings/company-presentation', async (req, res) => {
-  try {
-    const result = await pool.query(
-      "SELECT value FROM site_settings WHERE key = 'company_presentation'"
-    );
-    if (result.rows.length === 0) {
-      return res.json({ value: null });
-    }
-    return res.json({ value: result.rows[0].value });
-  } catch (err) {
-    console.error('Get presentation error:', err.message);
     return res.status(500).json({ error: 'Une erreur est survenue.' });
   }
 });
