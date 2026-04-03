@@ -55,10 +55,10 @@
     .radio-group label { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text); font-size: 14px; }
     .radio-group input[type="radio"] { width: auto; }
     .statut-options { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-    .statut-option { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--deep); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: border-color 0.2s; }
+    .statut-option { display: flex; flex-direction: row; align-items: center; gap: 12px; padding: 12px 16px; background: var(--deep); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: border-color 0.2s; }
     .statut-option:hover { border-color: var(--blue); }
     .statut-option.selected { border-color: var(--blue); background: #2EA3E010; }
-    .statut-option input[type="radio"] { width: auto; accent-color: var(--blue); }
+    .statut-option input[type="radio"] { width: auto; min-width: 18px; height: 18px; accent-color: var(--blue); margin: 0; flex-shrink: 0; }
     .statut-option .statut-label { font-size: 14px; font-weight: 500; }
     .statut-option .statut-desc { font-size: 12px; color: var(--text-muted); }
     .conditional-fields { display: none; margin-top: 16px; padding: 20px; background: #27AE6008; border-radius: 8px; border: 1px solid #27AE6020; }
