@@ -115,6 +115,30 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// --- TEMPORARY: First admin setup (remove after use) ---
+const bcryptSetup = require('bcryptjs');
+app.post('/api/setup-first-admin', async (req, res) => {
+  try {
+    const existing = await pool.query('SELECT COUNT(*)::int AS count FROM admins');
+    if (existing.rows[0].count > 0) {
+      return res.status(403).json({ error: 'Un admin existe déjà. Route désactivée.' });
+    }
+    const { email, password, prenom } = req.body;
+    if (!email || !password || !prenom) {
+      return res.status(400).json({ error: 'email, password et prenom requis.' });
+    }
+    const hash = await bcryptSetup.hash(password, 12);
+    const result = await pool.query(
+      'INSERT INTO admins (email, password_hash, prenom) VALUES ($1, $2, $3) RETURNING id, email, prenom',
+      [email.trim().toLowerCase(), hash, prenom.trim()]
+    );
+    return res.json({ ok: true, admin: result.rows[0] });
+  } catch (err) {
+    console.error('Setup first admin error:', err.message);
+    return res.status(500).json({ error: 'Erreur.' });
+  }
+});
+
 // --- API Routes ---
 app.use('/api', publicSubscribeRoutes);
 app.use('/api', publicJobRoutes);
