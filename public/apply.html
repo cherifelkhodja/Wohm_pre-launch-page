@@ -281,12 +281,31 @@
       phoneDropdown.classList.remove('open');
     });
 
-    function updatePhoneValue() {
-      var num = phoneNumberInput.value.replace(/[^\d]/g, '');
-      phoneHidden.value = phoneCode + num;
+    function formatPhoneNumber(raw) {
+      var digits = raw.replace(/[^\d]/g, '');
+      // Format: X XX XX XX XX (French style grouping)
+      var parts = [];
+      for (var i = 0; i < digits.length && i < 10; i++) {
+        if (i === 1 || (i > 1 && (i - 1) % 2 === 0)) parts.push(' ');
+        parts.push(digits[i]);
+      }
+      return parts.join('');
     }
 
-    phoneNumberInput.addEventListener('input', updatePhoneValue);
+    function updatePhoneValue() {
+      var digits = phoneNumberInput.value.replace(/[^\d]/g, '');
+      phoneHidden.value = phoneCode + digits;
+    }
+
+    phoneNumberInput.addEventListener('input', function() {
+      var cursorPos = this.selectionStart;
+      var oldLen = this.value.length;
+      this.value = formatPhoneNumber(this.value);
+      var newLen = this.value.length;
+      var newPos = cursorPos + (newLen - oldLen);
+      this.setSelectionRange(newPos, newPos);
+      updatePhoneValue();
+    });
 
     // Load job info if applying to a specific job
     var params = new URLSearchParams(window.location.search);
