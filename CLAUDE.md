@@ -15,7 +15,11 @@ WOHM est un centre d'ingénierie spécialisé dans la réparation de batteries h
 | Frontend | HTML / CSS / JS vanilla (fichier unique `public/index.html`) |
 | Backend | Node.js 20 + Express 4 |
 | Base de données | PostgreSQL (via `pg`) |
-| Sécurité | Helmet, CORS, rate limiter in-memory |
+| Auth | Sessions PostgreSQL (express-session + connect-pg-simple + bcryptjs) |
+| Upload | Multer (memory) → AWS S3 |
+| Email | Resend (invitations, digest quotidien) |
+| Cron | node-cron (digest 18h Europe/Paris) |
+| Sécurité | Helmet, CORS, rate limiter in-memory, sessions httpOnly |
 | Déploiement | Docker multi-stage → Railway |
 | Fonts | Outfit (body) + Bebas Neue (titres) via Google Fonts |
 | Analytics | Plausible (placeholder) |
@@ -28,10 +32,40 @@ WOHM est un centre d'ingénierie spécialisé dans la réparation de batteries h
 ├── Dockerfile           ← build multi-stage Node 20 Alpine
 ├── railway.json         ← config Railway (builder + healthcheck)
 ├── package.json
-├── server.js            ← serveur Express (API + static)
-├── db.js                ← connexion PostgreSQL + init tables
+├── server.js            ← serveur Express (orchestrateur : middleware, routes, cron)
+├── db.js                ← connexion PostgreSQL + init tables (8 tables)
+├── middleware/
+│   ├── auth.js          ← requireSession, requireAdmin, requireBearerAdmin
+│   ├── rate-limiter.js  ← createRateLimiter (in-memory)
+│   └── upload.js        ← multer (10 Mo, PDF+Word, validation magic bytes)
+├── routes/
+│   ├── admin-auth.js    ← login, logout, me
+│   ├── admin-invites.js ← invitation admin + setup/:token
+│   ├── admin-jobs.js    ← CRUD offres d'emploi
+│   ├── admin-applications.js ← suivi candidatures + statuts
+│   ├── admin-subscribers.js  ← inscrits + visites (existant extrait)
+│   ├── public-subscribe.js   ← inscription leads (existant extrait)
+│   ├── public-jobs.js        ← liste + détail offres publiques
+│   └── public-apply.js       ← candidature avec upload CV
+├── services/
+│   ├── email.js         ← Resend (invitations, digest, refus)
+│   ├── s3.js            ← upload/presigned URL AWS S3
+│   ├── slug.js          ← génération slugs uniques
+│   └── digest.js        ← cron quotidien 18h
+├── scripts/
+│   └── create-admin.js  ← CLI : node scripts/create-admin.js <email> <password> <prenom>
+├── admin/
+│   ├── login.html       ← page connexion admin
+│   ├── setup.html       ← acceptation invitation
+│   ├── index.html       ← dashboard admin
+│   ├── jobs.html        ← gestion offres d'emploi
+│   ├── applications.html ← suivi candidatures
+│   └── shared.js        ← utilitaires JS partagés (fetchAPI, nav, badges)
 └── public/
-    ├── index.html       ← landing page complète (HTML + CSS + JS inline)
+    ├── index.html       ← landing page (+ section "On recrute" dynamique)
+    ├── jobs.html         ← liste publique des offres
+    ├── job-detail.html   ← détail d'une offre (servi via /jobs/:slug)
+    ├── apply.html        ← formulaire de candidature
     ├── robots.txt
     ├── sitemap.xml
     └── assets/          ← logo, favicon, og-image
@@ -48,9 +82,17 @@ npm start            # lancer en production
 ### Variables d'environnement requises
 
 - `DATABASE_URL` — connexion PostgreSQL
-- `ADMIN_TOKEN` — token Bearer pour les routes admin
+- `ADMIN_TOKEN` — token Bearer pour les routes admin (legacy, transition vers sessions)
+- `SESSION_SECRET` — secret pour signer les cookies de session
+- `RESEND_API_KEY` — clé API Resend pour les emails
+- `S3_BUCKET` — nom du bucket S3 pour les CV
+- `S3_REGION` — région AWS du bucket
+- `AWS_ACCESS_KEY_ID` — clé d'accès AWS
+- `AWS_SECRET_ACCESS_KEY` — secret AWS
+- `DIGEST_RECIPIENT_EMAIL` — email(s) supplémentaires pour le digest
 - `PORT` — port du serveur (défaut : 3000)
 - `NODE_ENV` — `production` active SSL sur PostgreSQL
+- `TZ` — timezone pour le cron (Europe/Paris)
 
 ## Architecture frontend
 
@@ -63,8 +105,9 @@ Le frontend est un **fichier unique** (`public/index.html`) contenant HTML, CSS 
 3. **Le problème** — pain point coût constructeur (15 000 à 30 000 €)
 4. **Notre approche** — proposition de valeur + mention 80% d'économie
 5. **Expertise** — crédibilité équipe (ingénieurs F1)
-6. **CTA** — formulaire d'inscription (prénom, email, voiture)
-7. **Footer** — liens légaux + contact
+6. **On recrute** — aperçu des 3 dernières offres d'emploi (chargées dynamiquement)
+7. **CTA** — formulaire d'inscription (prénom, email, voiture)
+8. **Footer** — liens légaux + contact
 
 ### Design
 
@@ -74,19 +117,50 @@ Le frontend est un **fichier unique** (`public/index.html`) contenant HTML, CSS 
 
 ## API
 
-| Route | Méthode | Auth | Description |
-|-------|---------|------|-------------|
-| `/health` | GET | — | Health check |
-| `/api/subscribe` | POST | — | Inscription (prénom, email, vehicule) |
-| `/api/subscribers` | GET | Admin | Liste des inscrits |
-| `/api/subscribers/count` | GET | Admin | Nombre d'inscrits |
-| `/api/visits` | GET | Admin | Visites par IP |
-| `/api/visits/count` | GET | Admin | Total visites + IPs uniques |
+### Routes publiques
+
+| Route | Méthode | Description |
+|-------|---------|-------------|
+| `/health` | GET | Health check |
+| `/api/subscribe` | POST | Inscription lead (prénom, email, vehicule) |
+| `/api/jobs` | GET | Liste des offres actives |
+| `/api/jobs/:slug` | GET | Détail d'une offre |
+| `/api/apply` | POST | Candidature (multipart: champs + CV) |
+| `/jobs/:slug` | GET | Page HTML détail offre (SSR) |
+
+### Routes auth
+
+| Route | Méthode | Description |
+|-------|---------|-------------|
+| `/api/admin/login` | POST | Connexion admin (email + password) |
+| `/api/admin/logout` | POST | Déconnexion |
+| `/api/admin/me` | GET | Info admin connecté |
+| `/api/admin/setup/:token` | GET/POST | Validation/acceptation invitation |
+
+### Routes admin (session requise)
+
+| Route | Méthode | Description |
+|-------|---------|-------------|
+| `/api/admin/invites` | POST | Inviter un nouvel admin |
+| `/api/admin/subscribers` | GET | Liste des inscrits |
+| `/api/admin/subscribers/count` | GET | Nombre d'inscrits |
+| `/api/admin/visits` | GET | Visites par IP |
+| `/api/admin/visits/count` | GET | Total visites + IPs uniques |
+| `/api/admin/jobs` | GET/POST | Lister/Créer offres |
+| `/api/admin/jobs/:id` | PUT/DELETE | Modifier/Supprimer offre |
+| `/api/admin/jobs/:id/archive` | PATCH | Archiver/Désarchiver |
+| `/api/admin/applications` | GET | Liste candidatures (filtrable) |
+| `/api/admin/applications/new-count` | GET | Nombre de candidatures non vues |
+| `/api/admin/applications/:id` | GET | Détail candidature (marque vue) |
+| `/api/admin/applications/:id/cv` | GET | URL présignée S3 pour CV |
+| `/api/admin/applications/:id/status` | PATCH | Changer statut (raison si refus) |
 
 ### Rate limiting
 
 - Subscribe : 5 req/min/IP
+- Apply : 3 req/min/IP
 - Admin : 10 req/min/IP
+- Login : 5 req/min/IP
 
 ## SEO
 

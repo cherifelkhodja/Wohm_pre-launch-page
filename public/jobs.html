@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WOHM — Nos offres d'emploi</title>
+  <meta name="description" content="Rejoignez WOHM, centre d'ingénierie spécialisé dans la réparation de batteries haute tension et moteurs de voitures électriques. Découvrez nos offres.">
+  <link rel="canonical" href="https://wohm.fr/jobs">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --blue: #2EA3E0; --deep: #060A13; --surface: #0B1120; --text: #E8EDF5; --text-muted: #8A94A6; --border: #1A2235; }
+    body { font-family: 'Outfit', sans-serif; background: var(--deep); color: var(--text); min-height: 100vh; }
+    .container { max-width: 900px; margin: 0 auto; padding: 60px 24px; }
+    .back-link { display: inline-block; color: var(--blue); text-decoration: none; font-size: 14px; margin-bottom: 32px; }
+    .back-link:hover { text-decoration: underline; }
+    h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px, 6vw, 56px); letter-spacing: 1px; margin-bottom: 8px; }
+    .subtitle { color: var(--text-muted); font-size: 16px; margin-bottom: 40px; }
+    .job-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 16px; transition: border-color 0.2s; cursor: pointer; text-decoration: none; display: block; color: inherit; }
+    .job-card:hover { border-color: var(--blue); }
+    .job-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 10px; }
+    .job-meta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 12px; font-size: 14px; color: var(--text-muted); }
+    .job-meta span { display: flex; align-items: center; gap: 4px; }
+    .job-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag { display: inline-block; padding: 4px 12px; border-radius: 14px; font-size: 12px; font-weight: 500; }
+    .tag-contract { background: #2EA3E020; color: var(--blue); }
+    .tag-level { background: #9B59B620; color: #9B59B6; }
+    .tag-remote { background: #27AE6020; color: #27AE60; }
+    .tag-skill { background: var(--border); color: var(--text-muted); }
+    .empty-state { text-align: center; padding: 80px 20px; color: var(--text-muted); font-size: 16px; }
+    .loading { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+    @media (max-width: 639px) { .container { padding: 40px 16px; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="back-link">&larr; Retour au site</a>
+    <h1>NOS OFFRES D'EMPLOI</h1>
+    <p class="subtitle">Rejoignez l'aventure WOHM. Nous construisons le futur de la réparation de voitures électriques.</p>
+
+    <div id="jobs-list">
+      <div class="loading">Chargement des offres...</div>
+    </div>
+  </div>
+
+  <script>
+    var remotePolicyLabels = {
+      'sur_site': 'Sur site',
+      'teletravail_partiel': 'Télétravail partiel',
+      'teletravail_complet': 'Télétravail complet',
+    };
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    async function loadJobs() {
+      try {
+        var res = await fetch('/api/jobs');
+        var jobs = await res.json();
+        var container = document.getElementById('jobs-list');
+
+        if (jobs.length === 0) {
+          container.innerHTML = '<div class="empty-state"><p>Aucune offre disponible pour le moment.</p><p style="margin-top:12px;font-size:14px">Revenez bientôt ou envoyez-nous une candidature spontanée.</p></div>';
+          return;
+        }
+
+        container.innerHTML = jobs.map(function(job) {
+          var tags = '';
+          tags += '<span class="tag tag-contract">' + escapeHtml(job.contract_type) + '</span>';
+          if (job.experience_level) tags += '<span class="tag tag-level">' + escapeHtml(job.experience_level) + '</span>';
+          if (job.remote_policy) tags += '<span class="tag tag-remote">' + escapeHtml(remotePolicyLabels[job.remote_policy] || job.remote_policy) + '</span>';
+
+          var skillTags = '';
+          if (job.skills && job.skills.length > 0) {
+            skillTags = '<div class="job-tags" style="margin-top:12px">' +
+              job.skills.map(function(s) { return '<span class="tag tag-skill">' + escapeHtml(s) + '</span>'; }).join('') +
+            '</div>';
+          }
+
+          return '<a href="/jobs/' + escapeHtml(job.slug) + '" class="job-card">' +
+            '<h2>' + escapeHtml(job.title) + '</h2>' +
+            '<div class="job-meta">' +
+              (job.location ? '<span>&#128205; ' + escapeHtml(job.location) + '</span>' : '') +
+              '<span class="job-tags">' + tags + '</span>' +
+            '</div>' +
+            '<p style="color:var(--text-muted);font-size:14px;line-height:1.5">' + escapeHtml(job.description.substring(0, 200)) + (job.description.length > 200 ? '...' : '') + '</p>' +
+            skillTags +
+          '</a>';
+        }).join('');
+      } catch (err) {
+        document.getElementById('jobs-list').innerHTML = '<div class="empty-state">Erreur lors du chargement.</div>';
+      }
+    }
+
+    loadJobs();
+  </script>
+</body>
+</html>
