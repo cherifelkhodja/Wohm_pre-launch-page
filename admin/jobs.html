@@ -119,10 +119,10 @@
 
     var jobs = [];
 
-    // Convert plain text to HTML (preserve line breaks), skip if already HTML
+    // Convert plain text to HTML (preserve line breaks), sanitize if already HTML
     function textToHtml(text) {
       if (!text) return '';
-      if (/<[a-z][\s\S]*>/i.test(text)) return text; // already HTML
+      if (/<[a-z][\s\S]*>/i.test(text)) return sanitizeHtml(text);
       return escapeHtml(text).replace(/\n/g, '<br>');
     }
 

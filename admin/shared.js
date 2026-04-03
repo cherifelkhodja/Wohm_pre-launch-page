@@ -77,6 +77,22 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// Sanitize HTML — strip dangerous tags and event handlers, keep safe formatting
+function sanitizeHtml(html) {
+  if (!html) return '';
+  var tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  tmp.querySelectorAll('script, iframe, object, embed, form, input, textarea, select, button, link, meta, style').forEach(function(el) { el.remove(); });
+  tmp.querySelectorAll('*').forEach(function(el) {
+    Array.from(el.attributes).forEach(function(attr) {
+      if (attr.name.startsWith('on') || (attr.name === 'href' && attr.value.trim().toLowerCase().startsWith('javascript:'))) {
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
+  return tmp.innerHTML;
+}
+
 // Force light mode on admin pages
 function initAdminTheme() {
   document.documentElement.classList.add('light');

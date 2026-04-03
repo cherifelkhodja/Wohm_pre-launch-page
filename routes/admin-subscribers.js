@@ -1,12 +1,12 @@
 const { Router } = require('express');
 const { pool } = require('../db');
-const { requireAdmin } = require('../middleware/auth');
+const { requireSession } = require('../middleware/auth');
 const { createRateLimiter } = require('../middleware/rate-limiter');
 
 const router = Router();
 const adminLimiter = createRateLimiter(10, 60000);
 
-router.get('/subscribers', adminLimiter, requireAdmin, async (req, res) => {
+router.get('/subscribers', adminLimiter, requireSession, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, prenom, email, vehicule, created_at FROM subscribers ORDER BY created_at DESC'
@@ -18,7 +18,7 @@ router.get('/subscribers', adminLimiter, requireAdmin, async (req, res) => {
   }
 });
 
-router.get('/subscribers/count', adminLimiter, requireAdmin, async (req, res) => {
+router.get('/subscribers/count', adminLimiter, requireSession, async (req, res) => {
   try {
     const result = await pool.query('SELECT COUNT(*)::int AS count FROM subscribers');
     return res.json({ count: result.rows[0].count });
@@ -28,7 +28,7 @@ router.get('/subscribers/count', adminLimiter, requireAdmin, async (req, res) =>
   }
 });
 
-router.get('/visits', adminLimiter, requireAdmin, async (req, res) => {
+router.get('/visits', adminLimiter, requireSession, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT ip, COUNT(*)::int AS visits, MAX(created_at) AS last_visit
@@ -43,7 +43,7 @@ router.get('/visits', adminLimiter, requireAdmin, async (req, res) => {
   }
 });
 
-router.get('/visits/count', adminLimiter, requireAdmin, async (req, res) => {
+router.get('/visits/count', adminLimiter, requireSession, async (req, res) => {
   try {
     const total = await pool.query('SELECT COUNT(*)::int AS count FROM visits');
     const unique = await pool.query('SELECT COUNT(DISTINCT ip)::int AS count FROM visits');

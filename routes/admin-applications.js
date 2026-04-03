@@ -41,6 +41,9 @@ router.get('/applications', requireSession, async (req, res) => {
 
     const whereClause = where.length > 0 ? 'WHERE ' + where.join(' AND ') : '';
 
+    // Append pagination params after all filters
+    const limitIdx = paramIdx++;
+    const offsetIdx = paramIdx++;
     params.push(limit, offset);
 
     const result = await pool.query(`
@@ -54,7 +57,7 @@ router.get('/applications', requireSession, async (req, res) => {
       LEFT JOIN application_views av ON av.application_id = a.id AND av.admin_id = $1
       ${whereClause}
       ORDER BY a.created_at DESC
-      LIMIT $${paramIdx++} OFFSET $${paramIdx++}
+      LIMIT $${limitIdx} OFFSET $${offsetIdx}
     `, params);
 
     return res.json(result.rows);

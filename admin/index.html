@@ -216,7 +216,7 @@
       try {
         var res = await fetchAPI('/api/admin/settings/company_presentation');
         var data = await res.json();
-        if (data.value) presentationEditor.innerHTML = data.value;
+        if (data.value) presentationEditor.innerHTML = sanitizeHtml(data.value);
       } catch (err) { console.error('Load presentation error:', err); }
     }
 

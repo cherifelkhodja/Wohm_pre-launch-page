@@ -45,7 +45,7 @@ async function moveCV(oldKey, newKey) {
   const bucket = getBucket();
   await s3.send(new CopyObjectCommand({
     Bucket: bucket,
-    CopySource: `${bucket}/${oldKey}`,
+    CopySource: encodeURI(`${bucket}/${oldKey}`),
     Key: newKey,
   }));
   await s3.send(new DeleteObjectCommand({

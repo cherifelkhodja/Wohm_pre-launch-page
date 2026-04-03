@@ -167,3 +167,46 @@
 ### feat: Pagination sur les listes
 - `GET /api/jobs` : support `limit` (max 100, défaut 50) et `offset`
 - `GET /api/admin/applications` : support `limit` et `offset`
+
+---
+
+## 2026-04-03 — Audit de sécurité + corrections review
+
+### fix(CRITIQUE): Protection XSS sur le contenu HTML (présentation + offres)
+- Ajout de `services/sanitize.js` : sanitisation HTML côté serveur (suppression script, iframe, event handlers, javascript: URLs)
+- Sanitisation à l'écriture dans `routes/admin-settings.js` et `routes/admin-jobs.js`
+- Ajout de `sanitizeHtml()` côté client dans `admin/shared.js` et `public/job-detail.html`
+- `textToHtml()` passe maintenant par `sanitizeHtml()` au lieu de retourner du HTML brut
+- Présentation entreprise sanitisée à l'affichage (job-detail.html + admin/index.html)
+
+### fix(HAUTE): Prévention timing attack sur le login
+- `bcrypt.compare()` est maintenant toujours appelé, même si l'utilisateur n'existe pas (comparaison avec hash factice)
+
+### fix(HAUTE): Prévention session fixation
+- `req.session.regenerate()` appelé après login et après setup admin via invitation
+
+### fix(HAUTE): Suppression authentification Bearer token legacy
+- `requireBearerAdmin` et `requireAdmin` supprimés de `middleware/auth.js`
+- `admin-subscribers.js` migré de `requireAdmin` vers `requireSession`
+- Surface d'attaque réduite
+
+### fix(MOYENNE): Whitelist des clés de settings
+- Seule la clé `company_presentation` est autorisée dans `routes/admin-settings.js`
+- Toute autre clé retourne une erreur 400
+
+### fix(MOYENNE): Rate limiting sur les endpoints setup
+- Ajout de `setupLimiter` (5 req/min/IP) sur GET et POST `/api/admin/setup/:token`
+
+### fix(BASSE): Validation complexité mot de passe
+- Le mot de passe doit contenir au moins 1 majuscule, 1 minuscule et 1 chiffre
+
+### fix(BASSE): `password_confirm` obligatoire au setup admin
+
+### fix(review): Encodage URI du CopySource S3
+- `encodeURI()` appliqué pour éviter les erreurs sur noms de fichiers avec caractères spéciaux
+
+### fix(review): Pagination — header X-Total-Count
+- `GET /api/jobs` retourne le total dans le header `X-Total-Count`
+
+### fix(review): Clarification paramIdx dans la pagination admin
+- Indices `limitIdx` et `offsetIdx` calculés explicitement avant le push

@@ -62,9 +62,24 @@
       return div.innerHTML;
     }
 
+    function sanitizeHtml(html) {
+      if (!html) return '';
+      var tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      tmp.querySelectorAll('script, iframe, object, embed, form, input, textarea, select, button, link, meta, style').forEach(function(el) { el.remove(); });
+      tmp.querySelectorAll('*').forEach(function(el) {
+        Array.from(el.attributes).forEach(function(attr) {
+          if (attr.name.startsWith('on') || (attr.name === 'href' && attr.value.trim().toLowerCase().startsWith('javascript:'))) {
+            el.removeAttribute(attr.name);
+          }
+        });
+      });
+      return tmp.innerHTML;
+    }
+
     function textToHtml(text) {
       if (!text) return '';
-      if (/<[a-z][\s\S]*>/i.test(text)) return text;
+      if (/<[a-z][\s\S]*>/i.test(text)) return sanitizeHtml(text);
       return escapeHtml(text).replace(/\n/g, '<br>');
     }
 
@@ -107,7 +122,7 @@
           var presRes = await fetch('/api/settings/company-presentation');
           var presData = await presRes.json();
           if (presData.value) {
-            presentationHtml = '<div class="section presentation-section"><h2>WOHM</h2><div class="section-content">' + presData.value + '</div></div>';
+            presentationHtml = '<div class="section presentation-section"><h2>WOHM</h2><div class="section-content">' + sanitizeHtml(presData.value) + '</div></div>';
           }
         } catch (e) {}
 
