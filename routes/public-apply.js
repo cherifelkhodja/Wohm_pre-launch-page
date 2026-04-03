@@ -44,6 +44,12 @@ function validateApplicationInput(body) {
     errors.push('Le titre du poste est requis.');
   }
 
+  if (body.annees_experience !== undefined && body.annees_experience !== '' && body.annees_experience !== null) {
+    if (isNaN(Number(body.annees_experience)) || Number(body.annees_experience) < 0) {
+      errors.push("Le nombre d'années d'expérience est invalide.");
+    }
+  }
+
   if (!body.statut_pro || !VALID_STATUT_PRO.includes(body.statut_pro)) {
     errors.push('Statut professionnel invalide.');
   }
@@ -116,10 +122,10 @@ router.post('/apply', applyLimiter, upload.single('cv'), async (req, res) => {
     const result = await pool.query(
       `INSERT INTO applications (
         job_posting_id, civilite, prenom, nom, email, telephone,
-        poste_actuel, statut_pro, salaire_actuel, salaire_souhaite,
+        poste_actuel, annees_experience, statut_pro, salaire_actuel, salaire_souhaite,
         duree_stage, ecole, date_debut_souhaitee,
         disponibilite, niveau_anglais, cv_s3_key, cv_original_name, ip
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
       RETURNING id`,
       [
         req.body.job_posting_id || null,
@@ -129,6 +135,7 @@ router.post('/apply', applyLimiter, upload.single('cv'), async (req, res) => {
         req.body.email.trim().toLowerCase(),
         req.body.telephone.trim(),
         req.body.poste_actuel.trim(),
+        req.body.annees_experience ? Number(req.body.annees_experience) : null,
         req.body.statut_pro,
         req.body.statut_pro === 'salarie' ? Number(req.body.salaire_actuel) : null,
         req.body.statut_pro === 'salarie' ? Number(req.body.salaire_souhaite) : null,

@@ -147,11 +147,17 @@
 
         <!-- Profil professionnel -->
         <div class="form-section-title">Profil professionnel</div>
-        <div class="form-group">
-          <label for="poste_actuel">Titre du poste actuel/recherché <span class="req">*</span></label>
-          <input type="text" id="poste_actuel" name="poste_actuel" placeholder="ex: Ingénieur Batteries" required>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="poste_actuel">Titre du poste actuel/recherché <span class="req">*</span></label>
+            <input type="text" id="poste_actuel" name="poste_actuel" placeholder="ex: Ingénieur Batteries" required>
+          </div>
+          <div class="form-group">
+            <label for="annees_experience">Années d'expérience <span class="req">*</span></label>
+            <input type="number" id="annees_experience" name="annees_experience" placeholder="3" min="0" max="50" required>
+          </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" id="statut-group">
           <label>Statut professionnel <span class="req">*</span></label>
           <div class="statut-options" id="statut-options">
             <label class="statut-option" data-statut="salarie">
@@ -350,6 +356,38 @@
     // Load job info if applying to a specific job
     var params = new URLSearchParams(window.location.search);
     var jobId = params.get('job');
+    // Map contract_type to statut_pro
+    var contractToStatut = {
+      'CDI': 'salarie',
+      'CDD': 'salarie',
+      'Stage': 'stagiaire',
+      'Alternance': 'alternant',
+    };
+
+    function filterStatutOptions(contractType) {
+      if (!contractType) return; // candidature spontanée: show all
+      var statut = contractToStatut[contractType];
+      if (!statut) return;
+
+      // Hide all options, show only the matching one, auto-select it
+      document.querySelectorAll('.statut-option').forEach(function(opt) {
+        if (opt.getAttribute('data-statut') === statut) {
+          opt.style.display = 'grid';
+          opt.classList.add('selected');
+          opt.querySelector('input[type="radio"]').checked = true;
+        } else {
+          opt.style.display = 'none';
+        }
+      });
+
+      // Trigger conditional fields
+      document.getElementById('fields-salarie').classList.toggle('visible', statut === 'salarie');
+      document.getElementById('fields-stage').classList.toggle('visible', statut === 'stagiaire' || statut === 'alternant');
+
+      // Hide the statut group label since there's only one option
+      document.getElementById('statut-group').style.display = 'none';
+    }
+
     if (jobId) {
       document.getElementById('job_posting_id').value = jobId;
       fetch('/api/jobs/' + jobId)
@@ -360,12 +398,13 @@
             document.getElementById('page-title').textContent = 'Postuler — ' + job.title;
             document.getElementById('job-info').textContent = job.title + (job.location ? ' • ' + job.location : '');
             document.getElementById('back-link').href = '/jobs/' + job.slug;
-            document.getElementById('back-link').textContent = '\u2190 Retour à l\'offre';
+            document.getElementById('back-link').textContent = '\u2190 Retour \u00e0 l\'offre';
+            filterStatutOptions(job.contract_type);
           }
         });
     } else {
       document.getElementById('page-title').textContent = 'Candidature spontanée';
-      document.getElementById('job-info').textContent = 'Envoyez-nous votre candidature, nous étudierons votre profil.';
+      document.getElementById('job-info').textContent = 'Envoyez-nous votre candidature, nous \u00e9tudierons votre profil.';
     }
 
     // Statut professionnel toggle

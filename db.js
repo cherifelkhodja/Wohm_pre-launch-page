@@ -100,6 +100,7 @@ async function initDB() {
         email VARCHAR(255) NOT NULL,
         telephone VARCHAR(20) NOT NULL,
         poste_actuel VARCHAR(255) NOT NULL,
+        annees_experience INTEGER,
         statut_pro VARCHAR(20) NOT NULL,
         salaire_actuel INTEGER,
         salaire_souhaite INTEGER,
@@ -136,6 +137,11 @@ async function initDB() {
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
     `);
+
+    // --- Migrations (add columns if missing) ---
+    await client.query(`
+      ALTER TABLE applications ADD COLUMN IF NOT EXISTS annees_experience INTEGER;
+    `).catch(() => {});
 
     console.log('Database initialized successfully');
   } catch (err) {

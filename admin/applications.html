@@ -151,6 +151,7 @@
       html += '<div><strong style="color:var(--text-muted);font-size:12px">Téléphone</strong><br>' + escapeHtml(app.telephone) + '</div>';
       html += '<div><strong style="color:var(--text-muted);font-size:12px">Poste</strong><br>' + escapeHtml(app.poste_actuel) + '</div>';
       html += '<div><strong style="color:var(--text-muted);font-size:12px">Statut pro</strong><br>' + escapeHtml(statutProLabels[app.statut_pro] || app.statut_pro) + '</div>';
+      html += '<div><strong style="color:var(--text-muted);font-size:12px">Expérience</strong><br>' + (app.annees_experience != null ? app.annees_experience + ' an(s)' : '\u2014') + '</div>';
 
       if (app.statut_pro === 'salarie') {
         html += '<div><strong style="color:var(--text-muted);font-size:12px">Salaire actuel</strong><br>' + (app.salaire_actuel ? app.salaire_actuel.toLocaleString() + ' \u20AC/an' : '\u2014') + '</div>';
