@@ -13,7 +13,7 @@
   <div class="admin-main" id="main">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
       <h1>Offres d'emploi</h1>
-      <button class="btn btn-primary" onclick="openCreateModal()">+ Nouvelle offre</button>
+      <button class="btn btn-primary" id="btn-new-job">+ Nouvelle offre</button>
     </div>
 
     <div class="card">
@@ -110,9 +110,14 @@
     var jobs = [];
 
     async function loadJobs() {
-      var res = await fetchAPI('/api/admin/jobs');
-      jobs = await res.json();
-      renderJobs();
+      try {
+        var res = await fetchAPI('/api/admin/jobs');
+        jobs = await res.json();
+        renderJobs();
+      } catch (err) {
+        console.error('Load jobs error:', err);
+        document.getElementById('empty-state').style.display = 'block';
+      }
     }
 
     function renderJobs() {
@@ -236,6 +241,7 @@
       }
     });
 
+    document.getElementById('btn-new-job').addEventListener('click', openCreateModal);
     loadJobs();
   </script>
 </body>
