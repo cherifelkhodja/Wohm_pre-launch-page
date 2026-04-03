@@ -21,6 +21,12 @@ const publicApplyRoutes = require('./routes/public-apply');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Fail fast if SESSION_SECRET is not set in production
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  console.error('FATAL: SESSION_SECRET must be set in production.');
+  process.exit(1);
+}
+
 // Trust Railway reverse proxy
 app.set('trust proxy', true);
 

@@ -2,6 +2,7 @@ const { Router } = require('express');
 const { pool } = require('../db');
 const { requireSession } = require('../middleware/auth');
 const { getPresignedCVUrl } = require('../services/s3');
+const { sendRejectionEmail } = require('../services/email');
 
 const router = Router();
 
@@ -20,6 +21,9 @@ router.get('/applications', requireSession, async (req, res) => {
     const { status, job_id, spontaneous } = req.query;
     const adminId = req.session.adminId;
 
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 50, 1), 100);
+    const offset = Math.max(parseInt(req.query.offset) || 0, 0);
+
     let where = [];
     let params = [adminId];
     let paramIdx = 2;
@@ -37,6 +41,11 @@ router.get('/applications', requireSession, async (req, res) => {
 
     const whereClause = where.length > 0 ? 'WHERE ' + where.join(' AND ') : '';
 
+    // Append pagination params after all filters
+    const limitIdx = paramIdx++;
+    const offsetIdx = paramIdx++;
+    params.push(limit, offset);
+
     const result = await pool.query(`
       SELECT a.id, a.civilite, a.prenom, a.nom, a.email, a.telephone,
              a.poste_actuel, a.statut_pro, a.status, a.created_at,
@@ -48,6 +57,7 @@ router.get('/applications', requireSession, async (req, res) => {
       LEFT JOIN application_views av ON av.application_id = a.id AND av.admin_id = $1
       ${whereClause}
       ORDER BY a.created_at DESC
+      LIMIT $${limitIdx} OFFSET $${offsetIdx}
     `, params);
 
     return res.json(result.rows);
@@ -167,6 +177,13 @@ router.patch('/applications/:id/status', requireSession, async (req, res) => {
         req.params.id,
       ]
     );
+
+    // Send rejection email asynchronously
+    if (status === 'refuse') {
+      const app = result.rows[0];
+      sendRejectionEmail(app.email, app.prenom, rejection_reason.trim())
+        .catch(err => console.error('Rejection email error:', err.message));
+    }
 
     return res.json(result.rows[0]);
   } catch (err) {

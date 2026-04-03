@@ -47,8 +47,15 @@ async function sendDailyDigest(recipients, count, date) {
   });
 }
 
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 async function sendRejectionEmail(email, prenom, reason) {
   const r = getResend();
+  const reasonBlock = reason
+    ? `<p style="margin-top:16px;padding:12px 16px;background:#f5f5f5;border-left:3px solid #2EA3E0;color:#333;font-size:14px">${escapeHtml(reason)}</p>`
+    : '';
   await r.emails.send({
     from: FROM_EMAIL,
     to: email,
@@ -56,9 +63,10 @@ async function sendRejectionEmail(email, prenom, reason) {
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 0">
         <h2 style="color:#2EA3E0">WOHM</h2>
-        <p>Bonjour ${prenom},</p>
+        <p>Bonjour ${escapeHtml(prenom)},</p>
         <p>Nous avons bien étudié votre candidature et nous vous remercions pour l'intérêt que vous portez à WOHM.</p>
         <p>Malheureusement, nous ne sommes pas en mesure de donner suite à votre candidature pour le moment.</p>
+        ${reasonBlock}
         <p style="color:#888;font-size:13px;margin-top:24px">Cordialement,<br>L'équipe WOHM</p>
       </div>
     `,

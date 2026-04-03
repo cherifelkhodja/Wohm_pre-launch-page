@@ -119,10 +119,10 @@
 
     var jobs = [];
 
-    // Convert plain text to HTML (preserve line breaks), skip if already HTML
+    // Convert plain text to HTML (preserve line breaks), sanitize if already HTML
     function textToHtml(text) {
       if (!text) return '';
-      if (/<[a-z][\s\S]*>/i.test(text)) return text; // already HTML
+      if (/<[a-z][\s\S]*>/i.test(text)) return sanitizeHtml(text);
       return escapeHtml(text).replace(/\n/g, '<br>');
     }
 
@@ -167,10 +167,13 @@
       }).join('');
     }
 
-    function copyLink(slug) {
+    function copyLink(slug, btn) {
       var url = window.location.origin + '/jobs/' + slug;
       navigator.clipboard.writeText(url).then(function() {
-        alert('Lien copié : ' + url);
+        var original = btn.textContent;
+        btn.textContent = 'Copié !';
+        btn.style.color = 'var(--success)';
+        setTimeout(function() { btn.textContent = original; btn.style.color = ''; }, 1500);
       });
     }
 
@@ -265,7 +268,7 @@
       var btn = e.target.closest('[data-action]');
       if (!btn) return;
       var action = btn.getAttribute('data-action');
-      if (action === 'copy') copyLink(btn.getAttribute('data-slug'));
+      if (action === 'copy') copyLink(btn.getAttribute('data-slug'), btn);
       if (action === 'edit') editJob(btn.getAttribute('data-id'));
       if (action === 'archive') toggleArchive(btn.getAttribute('data-id'));
       if (action === 'delete') deleteJob(btn.getAttribute('data-id'));

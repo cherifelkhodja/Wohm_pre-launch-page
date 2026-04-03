@@ -35,7 +35,7 @@ WOHM est un centre d'ingénierie spécialisé dans la réparation de batteries h
 ├── server.js            ← serveur Express (orchestrateur : middleware, routes, cron)
 ├── db.js                ← connexion PostgreSQL + init tables (8 tables)
 ├── middleware/
-│   ├── auth.js          ← requireSession, requireAdmin, requireBearerAdmin
+│   ├── auth.js          ← requireSession
 │   ├── rate-limiter.js  ← createRateLimiter (in-memory)
 │   └── upload.js        ← multer (10 Mo, PDF+Word, validation magic bytes)
 ├── routes/

@@ -4,10 +4,12 @@ const bcrypt = require('bcryptjs');
 const { pool } = require('../db');
 const { requireSession } = require('../middleware/auth');
 const { sendAdminInvite } = require('../services/email');
+const { createRateLimiter } = require('../middleware/rate-limiter');
 
 const router = Router();
 const BCRYPT_ROUNDS = 12;
 const INVITE_EXPIRY_HOURS = 48;
+const setupLimiter = createRateLimiter(5, 60000);
 
 // POST /api/admin/invites — send invitation to new admin
 router.post('/invites', requireSession, async (req, res) => {
@@ -56,7 +58,7 @@ router.post('/invites', requireSession, async (req, res) => {
 });
 
 // GET /api/admin/setup/:token — validate invitation token
-router.get('/setup/:token', async (req, res) => {
+router.get('/setup/:token', setupLimiter, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, email FROM admin_invites WHERE token = $1 AND accepted_at IS NULL AND expires_at > NOW()',
@@ -75,7 +77,7 @@ router.get('/setup/:token', async (req, res) => {
 });
 
 // POST /api/admin/setup/:token — accept invite and create account
-router.post('/setup/:token', async (req, res) => {
+router.post('/setup/:token', setupLimiter, async (req, res) => {
   try {
     const { prenom, password } = req.body;
 
@@ -85,6 +87,15 @@ router.post('/setup/:token', async (req, res) => {
 
     if (password.length < 8) {
       return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 8 caractères.' });
+    }
+
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+      return res.status(400).json({ error: 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.' });
+    }
+
+    const { password_confirm } = req.body;
+    if (!password_confirm || password_confirm !== password) {
+      return res.status(400).json({ error: 'Les mots de passe ne correspondent pas.' });
     }
 
     const invite = await pool.query(
@@ -114,12 +125,20 @@ router.post('/setup/:token', async (req, res) => {
     // Mark invitation as accepted
     await pool.query('UPDATE admin_invites SET accepted_at = NOW() WHERE token = $1', [req.params.token]);
 
-    // Auto-login the new admin
-    req.session.adminId = admin.rows[0].id;
-    req.session.adminEmail = admin.rows[0].email;
-    req.session.adminPrenom = admin.rows[0].prenom;
-
-    return res.json({ ok: true, admin: admin.rows[0] });
+    // Auto-login with session regeneration to prevent fixation
+    const adminData = admin.rows[0];
+    return new Promise((resolve, reject) => {
+      req.session.regenerate((err) => {
+        if (err) {
+          console.error('Session regenerate error:', err.message);
+          return resolve(res.status(500).json({ error: 'Une erreur est survenue.' }));
+        }
+        req.session.adminId = adminData.id;
+        req.session.adminEmail = adminData.email;
+        req.session.adminPrenom = adminData.prenom;
+        return resolve(res.json({ ok: true, admin: adminData }));
+      });
+    });
   } catch (err) {
     console.error('Setup accept error:', err.message);
     return res.status(500).json({ error: 'Une erreur est survenue.' });

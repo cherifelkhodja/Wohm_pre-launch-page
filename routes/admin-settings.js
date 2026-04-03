@@ -1,12 +1,19 @@
 const { Router } = require('express');
 const { pool } = require('../db');
 const { requireSession } = require('../middleware/auth');
+const { sanitizeHtml } = require('../services/sanitize');
 
 const router = Router();
+
+const ALLOWED_SETTINGS_KEYS = ['company_presentation'];
 
 // GET /api/admin/settings/:key — read a setting
 router.get('/settings/:key', requireSession, async (req, res) => {
   try {
+    if (!ALLOWED_SETTINGS_KEYS.includes(req.params.key)) {
+      return res.status(400).json({ error: 'Clé de paramètre invalide.' });
+    }
+
     const result = await pool.query(
       'SELECT value, updated_at FROM site_settings WHERE key = $1',
       [req.params.key]
@@ -24,10 +31,17 @@ router.get('/settings/:key', requireSession, async (req, res) => {
 // PUT /api/admin/settings/:key — update a setting
 router.put('/settings/:key', requireSession, async (req, res) => {
   try {
-    const { value } = req.body;
+    if (!ALLOWED_SETTINGS_KEYS.includes(req.params.key)) {
+      return res.status(400).json({ error: 'Clé de paramètre invalide.' });
+    }
+
+    let { value } = req.body;
     if (value === undefined || value === null) {
       return res.status(400).json({ error: 'La valeur est requise.' });
     }
+
+    // Sanitize HTML content to prevent stored XSS
+    value = sanitizeHtml(value);
 
     await pool.query(
       `INSERT INTO site_settings (key, value, updated_at)

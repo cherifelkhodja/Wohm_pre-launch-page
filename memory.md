@@ -137,3 +137,81 @@
 - Middleware upload.js avec validation MIME type + magic bytes
 
 ### docs: Mise à jour sitemap.xml avec /jobs et /apply
+
+---
+
+## 2026-04-03 — Corrections post-analyse
+
+### fix: Déplacement du CV vers le chemin final sur S3
+- Le CV était stocké avec un chemin temporaire (`cv/pending/...`) et jamais déplacé
+- Ajout d'une fonction `moveCV` dans `services/s3.js` (CopyObject + DeleteObject)
+- Après insertion en BDD, le fichier est déplacé vers `cv/{appId}/...` et la BDD est mise à jour
+- Fallback gracieux : si le déplacement échoue, le CV reste accessible au chemin temporaire
+
+### fix: Inclusion de la raison du refus dans l'email de rejet
+- `sendRejectionEmail()` ignorait le paramètre `reason` — corrigé avec un bloc stylé dans l'email
+- Ajout de l'échappement HTML (XSS) sur le prénom et la raison
+- Ajout de l'appel à `sendRejectionEmail()` dans `routes/admin-applications.js` lors du changement de statut vers "refusé"
+
+### fix: Validation backend du mot de passe de confirmation (setup admin)
+- Ajout de la validation `password_confirm` côté serveur dans `routes/admin-invites.js`
+
+### fix: Vérification du digest manqué au démarrage
+- Nouvelle table `digest_sent` pour suivre les digests envoyés par date
+- `runDigest()` vérifie si le digest a déjà été envoyé avant d'envoyer
+- `checkMissedDigest()` envoie effectivement le digest si le serveur redémarre après 18h
+
+### fix: Erreur fatale si SESSION_SECRET non défini en production
+- Ajout d'un check au démarrage dans `server.js` — le serveur refuse de démarrer sans `SESSION_SECRET` en production
+
+### feat: Pagination sur les listes
+- `GET /api/jobs` : support `limit` (max 100, défaut 50) et `offset`
+- `GET /api/admin/applications` : support `limit` et `offset`
+
+---
+
+## 2026-04-03 — Audit de sécurité + corrections review
+
+### fix(CRITIQUE): Protection XSS sur le contenu HTML (présentation + offres)
+- Ajout de `services/sanitize.js` : sanitisation HTML côté serveur (suppression script, iframe, event handlers, javascript: URLs)
+- Sanitisation à l'écriture dans `routes/admin-settings.js` et `routes/admin-jobs.js`
+- Ajout de `sanitizeHtml()` côté client dans `admin/shared.js` et `public/job-detail.html`
+- `textToHtml()` passe maintenant par `sanitizeHtml()` au lieu de retourner du HTML brut
+- Présentation entreprise sanitisée à l'affichage (job-detail.html + admin/index.html)
+
+### fix(HAUTE): Prévention timing attack sur le login
+- `bcrypt.compare()` est maintenant toujours appelé, même si l'utilisateur n'existe pas (comparaison avec hash factice)
+
+### fix(HAUTE): Prévention session fixation
+- `req.session.regenerate()` appelé après login et après setup admin via invitation
+
+### fix(HAUTE): Suppression authentification Bearer token legacy
+- `requireBearerAdmin` et `requireAdmin` supprimés de `middleware/auth.js`
+- `admin-subscribers.js` migré de `requireAdmin` vers `requireSession`
+- Surface d'attaque réduite
+
+### fix(MOYENNE): Whitelist des clés de settings
+- Seule la clé `company_presentation` est autorisée dans `routes/admin-settings.js`
+- Toute autre clé retourne une erreur 400
+
+### fix(MOYENNE): Rate limiting sur les endpoints setup
+- Ajout de `setupLimiter` (5 req/min/IP) sur GET et POST `/api/admin/setup/:token`
+
+### fix(BASSE): Validation complexité mot de passe
+- Le mot de passe doit contenir au moins 1 majuscule, 1 minuscule et 1 chiffre
+
+### fix(BASSE): `password_confirm` obligatoire au setup admin
+
+### fix(review): Encodage URI du CopySource S3
+- `encodeURI()` appliqué pour éviter les erreurs sur noms de fichiers avec caractères spéciaux
+
+### fix(review): Pagination — header X-Total-Count
+- `GET /api/jobs` retourne le total dans le header `X-Total-Count`
+
+### fix(review): Clarification paramIdx dans la pagination admin
+- Indices `limitIdx` et `offsetIdx` calculés explicitement avant le push
+
+### refactor: Extraction de la présentation WOHM dans une page Paramètres
+- Création de `admin/settings.html` — page dédiée avec éditeur de présentation
+- Suppression du bloc présentation du dashboard (`admin/index.html`)
+- Ajout de l'entrée "Paramètres" dans la navigation admin (`admin/shared.js`)

@@ -2,6 +2,7 @@ const { Router } = require('express');
 const { pool } = require('../db');
 const { requireSession } = require('../middleware/auth');
 const { generateSlug, ensureUniqueSlug } = require('../services/slug');
+const { sanitizeHtml } = require('../services/sanitize');
 
 const router = Router();
 
@@ -79,8 +80,8 @@ router.post('/jobs', requireSession, async (req, res) => {
       [
         title.trim(),
         slug,
-        description.trim(),
-        profile ? profile.trim() : null,
+        sanitizeHtml(description.trim()),
+        profile ? sanitizeHtml(profile.trim()) : null,
         location ? location.trim() : null,
         remote_policy || null,
         contract_type,
@@ -123,7 +124,7 @@ router.put('/jobs/:id', requireSession, async (req, res) => {
        WHERE id = $10
        RETURNING *`,
       [
-        title.trim(), slug, description.trim(), profile ? profile.trim() : null,
+        title.trim(), slug, sanitizeHtml(description.trim()), profile ? sanitizeHtml(profile.trim()) : null,
         location ? location.trim() : null, remote_policy || null, contract_type,
         experience_level || null, skillsArray.length > 0 ? skillsArray : null,
         req.params.id,

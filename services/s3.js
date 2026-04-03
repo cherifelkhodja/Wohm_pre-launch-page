@@ -1,4 +1,4 @@
-const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, PutObjectCommand, GetObjectCommand, CopyObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 let client;
@@ -40,4 +40,19 @@ async function getPresignedCVUrl(key) {
   return getSignedUrl(s3, command, { expiresIn: 900 }); // 15 minutes
 }
 
-module.exports = { uploadCV, getPresignedCVUrl };
+async function moveCV(oldKey, newKey) {
+  const s3 = getS3Client();
+  const bucket = getBucket();
+  await s3.send(new CopyObjectCommand({
+    Bucket: bucket,
+    CopySource: encodeURI(`${bucket}/${oldKey}`),
+    Key: newKey,
+  }));
+  await s3.send(new DeleteObjectCommand({
+    Bucket: bucket,
+    Key: oldKey,
+  }));
+  return newKey;
+}
+
+module.exports = { uploadCV, getPresignedCVUrl, moveCV };
