@@ -58,7 +58,7 @@
     .statut-option { display: flex; flex-direction: row; align-items: center; gap: 12px; padding: 12px 16px; background: var(--deep); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: border-color 0.2s; }
     .statut-option:hover { border-color: var(--blue); }
     .statut-option.selected { border-color: var(--blue); background: #2EA3E010; }
-    .statut-option input[type="radio"] { width: auto; min-width: 18px; height: 18px; accent-color: var(--blue); margin: 0; flex-shrink: 0; }
+    .statut-option input[type="radio"] { width: 18px !important; min-width: 18px; height: 18px; accent-color: var(--blue); margin: 0; flex-shrink: 0; padding: 0 !important; }
     .statut-option .statut-label { font-size: 14px; font-weight: 500; }
     .statut-option .statut-desc { font-size: 12px; color: var(--text-muted); }
     .conditional-fields { display: none; margin-top: 16px; padding: 20px; background: #27AE6008; border-radius: 8px; border: 1px solid #27AE6020; }
@@ -172,11 +172,13 @@
           <div class="form-row">
             <div class="form-group">
               <label for="salaire_actuel">Salaire actuel (€/an) <span class="req">*</span></label>
-              <input type="number" id="salaire_actuel" name="salaire_actuel" placeholder="45000" min="0">
+              <input type="text" id="salaire_actuel_display" inputmode="numeric" placeholder="45 000">
+              <input type="hidden" id="salaire_actuel" name="salaire_actuel">
             </div>
             <div class="form-group">
               <label for="salaire_souhaite">Salaire souhaité (€/an) <span class="req">*</span></label>
-              <input type="number" id="salaire_souhaite" name="salaire_souhaite" placeholder="50000" min="0">
+              <input type="text" id="salaire_souhaite_display" inputmode="numeric" placeholder="50 000">
+              <input type="hidden" id="salaire_souhaite" name="salaire_souhaite">
             </div>
           </div>
         </div>
@@ -303,6 +305,19 @@
       var digits = phoneNumberInput.value.replace(/[^\d]/g, '');
       phoneHidden.value = phoneCode + digits;
     }
+
+    // Salary fields: thousand separator formatting
+    function formatSalary(input, hidden) {
+      input.addEventListener('input', function() {
+        var digits = this.value.replace(/[^\d]/g, '');
+        hidden.value = digits;
+        if (digits) {
+          this.value = parseInt(digits, 10).toLocaleString('fr-FR');
+        }
+      });
+    }
+    formatSalary(document.getElementById('salaire_actuel_display'), document.getElementById('salaire_actuel'));
+    formatSalary(document.getElementById('salaire_souhaite_display'), document.getElementById('salaire_souhaite'));
 
     // Duration field: combine number + unit
     var dureeNum = document.getElementById('duree_stage_num');
