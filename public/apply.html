@@ -186,8 +186,15 @@
           <div class="section-label">Informations stage/alternance</div>
           <div class="form-row">
             <div class="form-group">
-              <label for="duree_stage">Durée <span class="req">*</span></label>
-              <input type="text" id="duree_stage" name="duree_stage" placeholder="ex: 6 mois">
+              <label for="duree_stage_num">Durée <span class="req">*</span></label>
+              <div style="display:flex;gap:0">
+                <input type="number" id="duree_stage_num" placeholder="6" min="1" max="36" style="border-radius:6px 0 0 6px;border-right:none;width:80px;flex-shrink:0">
+                <select id="duree_stage_unit" style="border-radius:0 6px 6px 0;flex:1">
+                  <option value="mois">Mois</option>
+                  <option value="an">An(s)</option>
+                </select>
+              </div>
+              <input type="hidden" id="duree_stage" name="duree_stage">
             </div>
             <div class="form-group">
               <label for="ecole">École / Formation <span class="req">*</span></label>
@@ -296,6 +303,18 @@
       var digits = phoneNumberInput.value.replace(/[^\d]/g, '');
       phoneHidden.value = phoneCode + digits;
     }
+
+    // Duration field: combine number + unit
+    var dureeNum = document.getElementById('duree_stage_num');
+    var dureeUnit = document.getElementById('duree_stage_unit');
+    var dureeHidden = document.getElementById('duree_stage');
+    function updateDuree() {
+      var n = dureeNum.value;
+      var u = dureeUnit.value;
+      dureeHidden.value = n ? n + ' ' + u : '';
+    }
+    dureeNum.addEventListener('input', updateDuree);
+    dureeUnit.addEventListener('change', updateDuree);
 
     phoneNumberInput.addEventListener('input', function() {
       var cursorPos = this.selectionStart;
