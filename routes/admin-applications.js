@@ -17,7 +17,7 @@ const VALID_TRANSITIONS = {
 // GET /api/admin/applications — list all applications with filters
 router.get('/applications', requireSession, async (req, res) => {
   try {
-    const { status, job_id } = req.query;
+    const { status, job_id, spontaneous } = req.query;
     const adminId = req.session.adminId;
 
     let where = [];
@@ -28,7 +28,9 @@ router.get('/applications', requireSession, async (req, res) => {
       where.push(`a.status = $${paramIdx++}`);
       params.push(status);
     }
-    if (job_id) {
+    if (spontaneous === '1') {
+      where.push('a.job_posting_id IS NULL');
+    } else if (job_id) {
       where.push(`a.job_posting_id = $${paramIdx++}`);
       params.push(job_id);
     }

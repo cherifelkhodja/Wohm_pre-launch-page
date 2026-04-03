@@ -24,6 +24,7 @@
         </select>
         <select id="filter-job" class="btn btn-secondary" style="cursor:pointer">
           <option value="">Toutes les offres</option>
+          <option value="spontanee">Candidatures spontanées</option>
         </select>
       </div>
     </div>
@@ -102,7 +103,8 @@
         var jobId = document.getElementById('filter-job').value;
         var params = new URLSearchParams();
         if (status) params.set('status', status);
-        if (jobId) params.set('job_id', jobId);
+        if (jobId === 'spontanee') params.set('spontaneous', '1');
+        else if (jobId) params.set('job_id', jobId);
 
         var res = await fetchAPI('/api/admin/applications?' + params.toString());
         applications = await res.json();
@@ -131,7 +133,7 @@
           '<td>' + newBadge + '</td>' +
           '<td><strong>' + escapeHtml(a.prenom) + ' ' + escapeHtml(a.nom) + '</strong><br><span style="font-size:12px;color:var(--text-muted)">' + escapeHtml(a.email) + '</span></td>' +
           '<td>' + escapeHtml(a.poste_actuel) + '</td>' +
-          '<td>' + escapeHtml(a.job_title || 'Spontanée') + '</td>' +
+          '<td>' + (a.job_title ? escapeHtml(a.job_title) : '<span style="font-style:italic;color:var(--blue)">Spontan\u00e9e</span>') + '</td>' +
           '<td>' + statusBadge(a.status) + '</td>' +
           '<td style="font-size:13px;color:var(--text-muted)">' + formatDateShort(a.created_at) + '</td>' +
           '<td><button class="btn btn-sm btn-secondary" data-action="open" data-id="' + a.id + '">Voir</button></td>' +
