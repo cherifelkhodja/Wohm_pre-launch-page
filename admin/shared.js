@@ -118,11 +118,17 @@ function renderAdminNav(currentPage) {
   });
   html += '</div>';
   html += '<div class="admin-nav-footer">';
-  html += '<button onclick="toggleTheme()" class="admin-nav-theme" title="Changer de thème">' + (isLight ? '&#127769;' : '&#9728;&#65039;') + '</button>';
-  html += '<button onclick="logout()" class="admin-nav-logout">Déconnexion</button>';
+  html += '<button class="admin-nav-theme" id="btn-theme" title="Changer de thème">' + (isLight ? '&#127769;' : '&#9728;&#65039;') + '</button>';
+  html += '<button class="admin-nav-logout" id="btn-logout">Déconnexion</button>';
   html += '</div>';
   nav.innerHTML = html;
   document.body.insertBefore(nav, document.body.firstChild);
+
+  document.getElementById('btn-theme').addEventListener('click', function() {
+    toggleTheme();
+    this.innerHTML = document.documentElement.classList.contains('light') ? '&#127769;' : '&#9728;&#65039;';
+  });
+  document.getElementById('btn-logout').addEventListener('click', logout);
 }
 
 // Shared admin CSS (injected once)

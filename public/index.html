@@ -712,7 +712,7 @@ html.light .key-figure:hover{
         <input type="text" id="vehicule-input" placeholder="Voiture (ex: Tesla Model 3)" aria-label="Votre voiture électrique">
       </div>
     </div>
-    <button class="submit-btn" onclick="handleSubmit()" aria-label="S'inscrire à la liste d'attente">M'INSCRIRE</button>
+    <button class="submit-btn" id="submit-btn" aria-label="S'inscrire à la liste d'attente">M'INSCRIRE</button>
   </div>
   <div class="form-success" id="form-success">
     &#10003; Vous serez parmi les premiers informés.
@@ -821,7 +821,8 @@ function flashError(id) {
   el.focus();
   setTimeout(function() { el.style.borderColor = ''; el.style.boxShadow = ''; }, 2000);
 }
-// Enter key on any field
+// Submit button + enter key
+document.getElementById('submit-btn').addEventListener('click', handleSubmit);
 document.querySelectorAll('#email-form input').forEach(function(input) {
   input.addEventListener('keydown', function(e) { if (e.key === 'Enter') handleSubmit(); });
 });

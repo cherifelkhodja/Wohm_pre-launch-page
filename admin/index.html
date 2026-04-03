@@ -64,13 +64,13 @@
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <a href="/admin/jobs.html" class="btn btn-primary">Gérer les offres</a>
         <a href="/admin/applications.html" class="btn btn-secondary">Voir les candidatures</a>
-        <button class="btn btn-secondary" onclick="openInviteModal()">Inviter un admin</button>
+        <button class="btn btn-secondary" id="btn-open-invite">Inviter un admin</button>
       </div>
     </div>
   </div>
 
   <!-- Invite Modal -->
-  <div class="modal-overlay" id="invite-modal" style="display:none" onclick="if(event.target===this)closeInviteModal()">
+  <div class="modal-overlay" id="invite-modal" style="display:none">
     <div class="modal" style="max-width:400px">
       <h2>Inviter un admin</h2>
       <div class="form-group">
@@ -78,8 +78,8 @@
         <input type="email" id="invite-email" placeholder="admin@wohm.fr" required>
       </div>
       <div class="form-actions">
-        <button class="btn btn-secondary" onclick="closeInviteModal()">Annuler</button>
-        <button class="btn btn-primary" id="btn-invite" onclick="sendInvite()">Envoyer</button>
+        <button class="btn btn-secondary" id="btn-cancel-invite">Annuler</button>
+        <button class="btn btn-primary" id="btn-invite">Envoyer</button>
       </div>
       <div style="font-size:13px;margin-top:8px;text-align:center" id="invite-msg"></div>
     </div>
@@ -182,6 +182,13 @@
         btn.disabled = false;
       }
     }
+
+    document.getElementById('btn-open-invite').addEventListener('click', openInviteModal);
+    document.getElementById('btn-cancel-invite').addEventListener('click', closeInviteModal);
+    document.getElementById('btn-invite').addEventListener('click', sendInvite);
+    document.getElementById('invite-modal').addEventListener('click', function(e) {
+      if (e.target === document.getElementById('invite-modal')) closeInviteModal();
+    });
 
     loadDashboard();
   </script>

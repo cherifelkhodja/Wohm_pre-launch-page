@@ -135,17 +135,16 @@
         var statusHtml = j.is_archived
           ? '<span style="color:var(--text-muted)">Archivée</span>'
           : '<span style="color:var(--success)">Active</span>';
-        var link = '/jobs/' + escapeHtml(j.slug);
         return '<tr>' +
           '<td><strong>' + escapeHtml(j.title) + '</strong></td>' +
           '<td>' + escapeHtml(j.contract_type) + '</td>' +
           '<td>' + escapeHtml(j.location || '—') + '</td>' +
           '<td>' + statusHtml + '</td>' +
-          '<td><button class="btn btn-sm btn-secondary" onclick="copyLink(\'' + escapeHtml(j.slug) + '\')">Copier le lien</button></td>' +
+          '<td><button class="btn btn-sm btn-secondary" data-action="copy" data-slug="' + escapeHtml(j.slug) + '">Copier le lien</button></td>' +
           '<td style="white-space:nowrap">' +
-            '<button class="btn btn-sm btn-secondary" onclick="editJob(\'' + j.id + '\')" style="margin-right:4px">Modifier</button>' +
-            '<button class="btn btn-sm btn-secondary" onclick="toggleArchive(\'' + j.id + '\')">' + (j.is_archived ? 'Désarchiver' : 'Archiver') + '</button>' +
-            ' <button class="btn btn-sm btn-danger" onclick="deleteJob(\'' + j.id + '\')">Supprimer</button>' +
+            '<button class="btn btn-sm btn-secondary" data-action="edit" data-id="' + j.id + '" style="margin-right:4px">Modifier</button>' +
+            '<button class="btn btn-sm btn-secondary" data-action="archive" data-id="' + j.id + '">' + (j.is_archived ? 'Désarchiver' : 'Archiver') + '</button>' +
+            ' <button class="btn btn-sm btn-danger" data-action="delete" data-id="' + j.id + '">Supprimer</button>' +
           '</td>' +
         '</tr>';
       }).join('');
@@ -200,6 +199,7 @@
       loadJobs();
     }
 
+    // Form submit
     document.getElementById('job-form').addEventListener('submit', async function(e) {
       e.preventDefault();
       var errorEl = document.getElementById('form-error');
@@ -241,11 +241,24 @@
       }
     });
 
+    // Event delegation for dynamic buttons
+    document.getElementById('jobs-table').addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      var action = btn.getAttribute('data-action');
+      if (action === 'copy') copyLink(btn.getAttribute('data-slug'));
+      if (action === 'edit') editJob(btn.getAttribute('data-id'));
+      if (action === 'archive') toggleArchive(btn.getAttribute('data-id'));
+      if (action === 'delete') deleteJob(btn.getAttribute('data-id'));
+    });
+
+    // Static button listeners
     document.getElementById('btn-new-job').addEventListener('click', openCreateModal);
     document.getElementById('btn-cancel').addEventListener('click', closeModal);
     document.getElementById('modal').addEventListener('click', function(e) {
       if (e.target === document.getElementById('modal')) closeModal();
     });
+
     loadJobs();
   </script>
 </body>

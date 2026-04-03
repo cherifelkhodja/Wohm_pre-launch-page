@@ -114,7 +114,7 @@
   </style>
 </head>
 <body>
-  <button class="theme-toggle" id="theme-toggle" onclick="toggleLoginTheme()"></button>
+  <button class="theme-toggle" id="theme-toggle"></button>
   <div class="login-card">
     <img src="/assets/Wohm - Dark.png" alt="WOHM" class="logo" id="logo-img">
     <h1>Administration</h1>
@@ -151,6 +151,7 @@
       document.documentElement.classList.add('light');
     }
     updateLoginUI();
+    document.getElementById('theme-toggle').addEventListener('click', toggleLoginTheme);
 
     var form = document.getElementById('login-form');
     var btn = document.getElementById('btn-submit');

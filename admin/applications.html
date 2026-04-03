@@ -14,7 +14,7 @@
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
       <h1>Candidatures</h1>
       <div style="display:flex;gap:8px">
-        <select id="filter-status" class="btn btn-secondary" style="cursor:pointer" onchange="loadApplications()">
+        <select id="filter-status" class="btn btn-secondary" style="cursor:pointer">
           <option value="">Tous les statuts</option>
           <option value="new">Nouveau</option>
           <option value="contacte">Contacté</option>
@@ -22,7 +22,7 @@
           <option value="valide">Validé</option>
           <option value="refuse">Refusé</option>
         </select>
-        <select id="filter-job" class="btn btn-secondary" style="cursor:pointer" onchange="loadApplications()">
+        <select id="filter-job" class="btn btn-secondary" style="cursor:pointer">
           <option value="">Toutes les offres</option>
         </select>
       </div>
@@ -50,7 +50,7 @@
   </div>
 
   <!-- Detail Modal -->
-  <div class="modal-overlay" id="detail-modal" style="display:none" onclick="if(event.target===this)closeDetail()">
+  <div class="modal-overlay" id="detail-modal" style="display:none">
     <div class="modal" style="max-width:640px">
       <h2 id="detail-name"></h2>
       <div id="detail-content"></div>
@@ -59,7 +59,7 @@
   </div>
 
   <!-- Rejection Modal -->
-  <div class="modal-overlay" id="reject-modal" style="display:none" onclick="if(event.target===this)closeReject()">
+  <div class="modal-overlay" id="reject-modal" style="display:none">
     <div class="modal" style="max-width:440px">
       <h2>Refuser la candidature</h2>
       <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">La raison du refus sera enregistrée pour un futur email au candidat.</p>
@@ -68,8 +68,8 @@
         <textarea id="rejection-reason" rows="4" placeholder="Expliquez la raison du refus..." required></textarea>
       </div>
       <div class="form-actions">
-        <button class="btn btn-secondary" onclick="closeReject()">Annuler</button>
-        <button class="btn btn-danger" id="btn-reject" onclick="confirmReject()">Confirmer le refus</button>
+        <button class="btn btn-secondary" id="btn-cancel-reject">Annuler</button>
+        <button class="btn btn-danger" id="btn-reject">Confirmer le refus</button>
       </div>
       <div style="color:var(--error);font-size:13px;margin-top:8px" id="reject-error"></div>
     </div>
@@ -82,29 +82,32 @@
     var applications = [];
     var currentAppId = null;
 
-    // Load job list for filter
     async function loadJobFilter() {
-      var res = await fetchAPI('/api/admin/jobs');
-      var jobs = await res.json();
-      var select = document.getElementById('filter-job');
-      jobs.forEach(function(j) {
-        var opt = document.createElement('option');
-        opt.value = j.id;
-        opt.textContent = j.title;
-        select.appendChild(opt);
-      });
+      try {
+        var res = await fetchAPI('/api/admin/jobs');
+        var jobs = await res.json();
+        var select = document.getElementById('filter-job');
+        jobs.forEach(function(j) {
+          var opt = document.createElement('option');
+          opt.value = j.id;
+          opt.textContent = j.title;
+          select.appendChild(opt);
+        });
+      } catch (err) { console.error('Load job filter error:', err); }
     }
 
     async function loadApplications() {
-      var status = document.getElementById('filter-status').value;
-      var jobId = document.getElementById('filter-job').value;
-      var params = new URLSearchParams();
-      if (status) params.set('status', status);
-      if (jobId) params.set('job_id', jobId);
+      try {
+        var status = document.getElementById('filter-status').value;
+        var jobId = document.getElementById('filter-job').value;
+        var params = new URLSearchParams();
+        if (status) params.set('status', status);
+        if (jobId) params.set('job_id', jobId);
 
-      var res = await fetchAPI('/api/admin/applications?' + params.toString());
-      applications = await res.json();
-      renderApplications();
+        var res = await fetchAPI('/api/admin/applications?' + params.toString());
+        applications = await res.json();
+        renderApplications();
+      } catch (err) { console.error('Load applications error:', err); }
     }
 
     var statutProLabels = { 'salarie': 'Salarié', 'stagiaire': 'Stagiaire', 'alternant': 'Alternant' };
@@ -124,14 +127,14 @@
 
       tbody.innerHTML = applications.map(function(a) {
         var newBadge = a.is_new ? '<span class="badge-new"></span>' : '';
-        return '<tr style="cursor:pointer" onclick="openDetail(\'' + a.id + '\')">' +
+        return '<tr style="cursor:pointer" data-action="open" data-id="' + a.id + '">' +
           '<td>' + newBadge + '</td>' +
           '<td><strong>' + escapeHtml(a.prenom) + ' ' + escapeHtml(a.nom) + '</strong><br><span style="font-size:12px;color:var(--text-muted)">' + escapeHtml(a.email) + '</span></td>' +
           '<td>' + escapeHtml(a.poste_actuel) + '</td>' +
           '<td>' + escapeHtml(a.job_title || 'Spontanée') + '</td>' +
           '<td>' + statusBadge(a.status) + '</td>' +
           '<td style="font-size:13px;color:var(--text-muted)">' + formatDateShort(a.created_at) + '</td>' +
-          '<td><button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();openDetail(\'' + a.id + '\')">Voir</button></td>' +
+          '<td><button class="btn btn-sm btn-secondary" data-action="open" data-id="' + a.id + '">Voir</button></td>' +
         '</tr>';
       }).join('');
     }
@@ -150,13 +153,13 @@
       html += '<div><strong style="color:var(--text-muted);font-size:12px">Statut pro</strong><br>' + escapeHtml(statutProLabels[app.statut_pro] || app.statut_pro) + '</div>';
 
       if (app.statut_pro === 'salarie') {
-        html += '<div><strong style="color:var(--text-muted);font-size:12px">Salaire actuel</strong><br>' + (app.salaire_actuel ? app.salaire_actuel.toLocaleString() + ' €/an' : '—') + '</div>';
-        html += '<div><strong style="color:var(--text-muted);font-size:12px">Salaire souhaité</strong><br>' + (app.salaire_souhaite ? app.salaire_souhaite.toLocaleString() + ' €/an' : '—') + '</div>';
+        html += '<div><strong style="color:var(--text-muted);font-size:12px">Salaire actuel</strong><br>' + (app.salaire_actuel ? app.salaire_actuel.toLocaleString() + ' \u20AC/an' : '\u2014') + '</div>';
+        html += '<div><strong style="color:var(--text-muted);font-size:12px">Salaire souhaité</strong><br>' + (app.salaire_souhaite ? app.salaire_souhaite.toLocaleString() + ' \u20AC/an' : '\u2014') + '</div>';
       }
       if (app.statut_pro === 'stagiaire' || app.statut_pro === 'alternant') {
-        html += '<div><strong style="color:var(--text-muted);font-size:12px">Durée</strong><br>' + escapeHtml(app.duree_stage || '—') + '</div>';
-        html += '<div><strong style="color:var(--text-muted);font-size:12px">École</strong><br>' + escapeHtml(app.ecole || '—') + '</div>';
-        html += '<div><strong style="color:var(--text-muted);font-size:12px">Début souhaité</strong><br>' + (app.date_debut_souhaitee ? formatDateShort(app.date_debut_souhaitee) : '—') + '</div>';
+        html += '<div><strong style="color:var(--text-muted);font-size:12px">Durée</strong><br>' + escapeHtml(app.duree_stage || '\u2014') + '</div>';
+        html += '<div><strong style="color:var(--text-muted);font-size:12px">École</strong><br>' + escapeHtml(app.ecole || '\u2014') + '</div>';
+        html += '<div><strong style="color:var(--text-muted);font-size:12px">Début souhaité</strong><br>' + (app.date_debut_souhaitee ? formatDateShort(app.date_debut_souhaitee) : '\u2014') + '</div>';
       }
 
       html += '<div><strong style="color:var(--text-muted);font-size:12px">Disponibilité</strong><br>' + escapeHtml(disponibiliteLabels[app.disponibilite] || app.disponibilite) + '</div>';
@@ -171,7 +174,7 @@
       }
       html += '</div>';
 
-      html += '<div style="margin-top:12px"><button class="btn btn-sm btn-primary" onclick="downloadCV()">Télécharger le CV</button>';
+      html += '<div style="margin-top:12px"><button class="btn btn-sm btn-primary" data-action="download-cv">Télécharger le CV</button>';
       if (app.cv_original_name) html += ' <span style="font-size:12px;color:var(--text-muted)">' + escapeHtml(app.cv_original_name) + '</span>';
       html += '</div>';
 
@@ -187,17 +190,12 @@
       };
 
       var actions = (transitions[app.status] || []).map(function(t) {
-        if (t.status === 'refuse') {
-          return '<button class="btn ' + t.cls + '" onclick="openReject()">' + t.label + '</button>';
-        }
-        return '<button class="btn ' + t.cls + '" onclick="changeStatus(\'' + t.status + '\')">' + t.label + '</button>';
+        return '<button class="btn ' + t.cls + '" data-action="status" data-status="' + t.status + '">' + t.label + '</button>';
       }).join('');
-      actions += '<button class="btn btn-secondary" onclick="closeDetail()" style="margin-left:auto">Fermer</button>';
+      actions += '<button class="btn btn-secondary" data-action="close-detail" style="margin-left:auto">Fermer</button>';
       document.getElementById('detail-actions').innerHTML = actions;
 
       document.getElementById('detail-modal').style.display = 'flex';
-
-      // Refresh list to update "new" badge
       loadApplications();
     }
 
@@ -209,9 +207,7 @@
     async function downloadCV() {
       var res = await fetchAPI('/api/admin/applications/' + currentAppId + '/cv');
       var data = await res.json();
-      if (data.url) {
-        window.open(data.url, '_blank');
-      }
+      if (data.url) window.open(data.url, '_blank');
     }
 
     async function changeStatus(status) {
@@ -244,17 +240,13 @@
         document.getElementById('reject-error').textContent = 'La raison est obligatoire.';
         return;
       }
-
       var btn = document.getElementById('btn-reject');
       btn.disabled = true;
-
       var res = await fetchAPI('/api/admin/applications/' + currentAppId + '/status', {
         method: 'PATCH',
         body: { status: 'refuse', rejection_reason: reason },
       });
-
       btn.disabled = false;
-
       if (res.ok) {
         closeReject();
         closeDetail();
@@ -264,6 +256,42 @@
         document.getElementById('reject-error').textContent = data.error || 'Erreur.';
       }
     }
+
+    // Event delegation: applications table
+    document.getElementById('applications-table').addEventListener('click', function(e) {
+      var el = e.target.closest('[data-action]');
+      if (!el) return;
+      if (el.getAttribute('data-action') === 'open') {
+        e.stopPropagation();
+        openDetail(el.getAttribute('data-id'));
+      }
+    });
+
+    // Event delegation: detail modal
+    document.getElementById('detail-modal').addEventListener('click', function(e) {
+      if (e.target === document.getElementById('detail-modal')) { closeDetail(); return; }
+      var el = e.target.closest('[data-action]');
+      if (!el) return;
+      var action = el.getAttribute('data-action');
+      if (action === 'download-cv') downloadCV();
+      if (action === 'close-detail') closeDetail();
+      if (action === 'status') {
+        var st = el.getAttribute('data-status');
+        if (st === 'refuse') openReject();
+        else changeStatus(st);
+      }
+    });
+
+    // Reject modal
+    document.getElementById('reject-modal').addEventListener('click', function(e) {
+      if (e.target === document.getElementById('reject-modal')) closeReject();
+    });
+    document.getElementById('btn-cancel-reject').addEventListener('click', closeReject);
+    document.getElementById('btn-reject').addEventListener('click', confirmReject);
+
+    // Filters
+    document.getElementById('filter-status').addEventListener('change', loadApplications);
+    document.getElementById('filter-job').addEventListener('change', loadApplications);
 
     loadJobFilter();
     loadApplications();
