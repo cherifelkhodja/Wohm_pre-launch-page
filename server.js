@@ -75,9 +75,9 @@ app.use(session({
   },
 }));
 
-// --- Block directory access ---
+// --- Block directory access (except admin/) ---
 app.use((req, res, next) => {
-  if (req.path !== '/' && req.path.endsWith('/')) {
+  if (req.path !== '/' && req.path.endsWith('/') && !req.path.startsWith('/admin')) {
     return res.status(403).json({ error: 'Accès interdit' });
   }
   next();
