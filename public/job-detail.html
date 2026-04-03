@@ -124,7 +124,7 @@
           skillsHtml;
 
         // Set apply link
-        document.getElementById('apply-btn').href = '/apply.html?job=' + job.id;
+        document.getElementById('apply-btn').href = '/apply.html?job=' + job.slug;
         document.getElementById('apply-bar').style.display = 'block';
       } catch (err) {
         showNotFound();
