@@ -115,18 +115,22 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// --- TEMPORARY: First admin setup (remove after use) ---
+// --- TEMPORARY: Reset and create admin (remove after use) ---
 const bcryptSetup = require('bcryptjs');
-app.post('/api/setup-first-admin', async (req, res) => {
+app.post('/api/setup-admin-reset', async (req, res) => {
   try {
-    const existing = await pool.query('SELECT COUNT(*)::int AS count FROM admins');
-    if (existing.rows[0].count > 0) {
-      return res.status(403).json({ error: 'Un admin existe déjà. Route désactivée.' });
-    }
     const { email, password, prenom } = req.body;
     if (!email || !password || !prenom) {
       return res.status(400).json({ error: 'email, password et prenom requis.' });
     }
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 8 caractères.' });
+    }
+    // Delete all existing admins
+    await pool.query('DELETE FROM admin_invites');
+    await pool.query('DELETE FROM application_views');
+    await pool.query('DELETE FROM admins');
+    // Create new admin with hashed password (bcrypt cost 12)
     const hash = await bcryptSetup.hash(password, 12);
     const result = await pool.query(
       'INSERT INTO admins (email, password_hash, prenom) VALUES ($1, $2, $3) RETURNING id, email, prenom',
@@ -134,7 +138,7 @@ app.post('/api/setup-first-admin', async (req, res) => {
     );
     return res.json({ ok: true, admin: result.rows[0] });
   } catch (err) {
-    console.error('Setup first admin error:', err.message);
+    console.error('Setup admin reset error:', err.message);
     return res.status(500).json({ error: 'Erreur.' });
   }
 });
