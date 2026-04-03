@@ -63,6 +63,13 @@
       return div.innerHTML;
     }
 
+    function stripHtml(html) {
+      if (!html) return '';
+      var div = document.createElement('div');
+      div.innerHTML = html;
+      return div.textContent || '';
+    }
+
     async function loadJobs() {
       try {
         var res = await fetch('/api/jobs');
@@ -93,7 +100,7 @@
               (job.location ? '<span>&#128205; ' + escapeHtml(job.location) + '</span>' : '') +
               '<span class="job-tags">' + tags + '</span>' +
             '</div>' +
-            '<p style="color:var(--text-muted);font-size:14px;line-height:1.5">' + escapeHtml(job.description.substring(0, 200)) + (job.description.length > 200 ? '...' : '') + '</p>' +
+            '<p style="color:var(--text-muted);font-size:14px;line-height:1.5">' + escapeHtml(stripHtml(job.description).substring(0, 200)) + (stripHtml(job.description).length > 200 ? '...' : '') + '</p>' +
             skillTags +
           '</a>';
         }).join('');

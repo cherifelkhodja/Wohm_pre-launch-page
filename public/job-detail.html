@@ -62,6 +62,12 @@
       return div.innerHTML;
     }
 
+    function textToHtml(text) {
+      if (!text) return '';
+      if (/<[a-z][\s\S]*>/i.test(text)) return text;
+      return escapeHtml(text).replace(/\n/g, '<br>');
+    }
+
     async function loadJob() {
       var slug = window.location.pathname.split('/jobs/')[1];
       if (!slug) {
@@ -92,7 +98,7 @@
 
         var profileHtml = '';
         if (job.profile) {
-          profileHtml = '<div class="section"><h2>Profil recherché</h2><div class="section-content">' + job.profile + '</div></div>';
+          profileHtml = '<div class="section"><h2>Profil recherché</h2><div class="section-content">' + textToHtml(job.profile) + '</div></div>';
         }
 
         // Load company presentation
@@ -113,7 +119,7 @@
             '<span>' + tags + '</span>' +
           '</div>' +
           presentationHtml +
-          '<div class="section"><h2>Description</h2><div class="section-content">' + job.description + '</div></div>' +
+          '<div class="section"><h2>Description</h2><div class="section-content">' + textToHtml(job.description) + '</div></div>' +
           profileHtml +
           skillsHtml;
 

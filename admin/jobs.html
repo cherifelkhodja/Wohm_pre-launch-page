@@ -119,6 +119,13 @@
 
     var jobs = [];
 
+    // Convert plain text to HTML (preserve line breaks), skip if already HTML
+    function textToHtml(text) {
+      if (!text) return '';
+      if (/<[a-z][\s\S]*>/i.test(text)) return text; // already HTML
+      return escapeHtml(text).replace(/\n/g, '<br>');
+    }
+
     async function loadJobs() {
       try {
         var res = await fetchAPI('/api/admin/jobs');
@@ -189,8 +196,8 @@
       document.getElementById('experience_level').value = job.experience_level || '';
       document.getElementById('location').value = job.location || '';
       document.getElementById('remote_policy').value = job.remote_policy || '';
-      document.getElementById('description').innerHTML = job.description;
-      document.getElementById('profile').innerHTML = job.profile || '';
+      document.getElementById('description').innerHTML = textToHtml(job.description);
+      document.getElementById('profile').innerHTML = textToHtml(job.profile || '');
       document.getElementById('skills').value = (job.skills || []).join(', ');
       document.getElementById('form-error').textContent = '';
       document.getElementById('modal').style.display = 'flex';
