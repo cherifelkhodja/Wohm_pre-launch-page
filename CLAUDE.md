@@ -146,6 +146,7 @@ Le frontend est un **fichier unique** (`public/index.html`) contenant HTML, CSS 
 | `/api/admin/subscribers/count` | GET | Nombre d'inscrits |
 | `/api/admin/visits` | GET | Visites par IP |
 | `/api/admin/visits/count` | GET | Total visites + IPs uniques |
+| `/api/admin/jobs/:id/views` | GET | Détail des vues d'une offre (IP uniques) |
 | `/api/admin/jobs` | GET/POST | Lister/Créer offres |
 | `/api/admin/jobs/:id` | PUT/DELETE | Modifier/Supprimer offre |
 | `/api/admin/jobs/:id/archive` | PATCH | Archiver/Désarchiver |

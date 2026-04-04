@@ -42,6 +42,16 @@ router.get('/jobs/:slug', async (req, res) => {
       return res.status(404).json({ error: 'Offre non trouvée.' });
     }
 
+    // Track unique view by IP
+    const ip = req.ip;
+    const userAgent = req.get('User-Agent') || null;
+    pool.query(
+      `INSERT INTO job_views (job_posting_id, ip, user_agent)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (job_posting_id, ip) DO NOTHING`,
+      [result.rows[0].id, ip, userAgent]
+    ).catch(err => console.error('Job view tracking error:', err.message));
+
     return res.json(result.rows[0]);
   } catch (err) {
     console.error('Get public job error:', err.message);

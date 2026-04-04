@@ -103,10 +103,10 @@ function renderAdminNav(currentPage) {
   initAdminTheme();
 
   var navItems = [
-    { href: '/admin/', label: 'Dashboard', icon: '&#9636;' },
-    { href: '/admin/jobs.html', label: 'Offres', icon: '&#9997;' },
-    { href: '/admin/applications.html', label: 'Candidatures', icon: '&#128196;' },
-    { href: '/admin/settings.html', label: 'Paramètres', icon: '&#9881;' },
+    { href: '/admin/', label: 'Dashboard', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>' },
+    { href: '/admin/jobs.html', label: 'Offres', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>' },
+    { href: '/admin/applications.html', label: 'Candidatures', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
+    { href: '/admin/settings.html', label: 'Paramètres', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>' },
   ];
 
   var nav = document.createElement('nav');
@@ -115,16 +115,71 @@ function renderAdminNav(currentPage) {
   html += '<div class="admin-nav-links">';
   navItems.forEach(function(item) {
     var active = currentPage === item.href ? ' active' : '';
-    html += '<a href="' + item.href + '" class="admin-nav-link' + active + '">' + item.icon + ' ' + item.label + '</a>';
+    html += '<a href="' + item.href + '" class="admin-nav-link' + active + '"><span class="nav-icon">' + item.icon + '</span><span class="nav-label">' + item.label + '</span></a>';
   });
   html += '</div>';
   html += '<div class="admin-nav-footer">';
-  html += '<button class="admin-nav-logout" id="btn-logout">Déconnexion</button>';
+  html += '<button class="admin-nav-logout" id="btn-logout"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="nav-label">Déconnexion</span></button>';
   html += '</div>';
   nav.innerHTML = html;
   document.body.insertBefore(nav, document.body.firstChild);
 
+  // Mobile hamburger toggle
+  var hamburger = document.createElement('button');
+  hamburger.className = 'admin-hamburger';
+  hamburger.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+  document.body.insertBefore(hamburger, document.body.firstChild);
+
+  hamburger.addEventListener('click', function() {
+    nav.classList.toggle('open');
+  });
+
+  // Close nav when clicking outside on mobile
+  document.addEventListener('click', function(e) {
+    if (window.innerWidth <= 768 && nav.classList.contains('open') && !nav.contains(e.target) && e.target !== hamburger && !hamburger.contains(e.target)) {
+      nav.classList.remove('open');
+    }
+  });
+
+  // Close nav when clicking a link on mobile
+  nav.querySelectorAll('.admin-nav-link').forEach(function(link) {
+    link.addEventListener('click', function() {
+      if (window.innerWidth <= 768) nav.classList.remove('open');
+    });
+  });
+
   document.getElementById('btn-logout').addEventListener('click', logout);
+
+  // Start polling for new application count badge
+  startBadgePolling();
+}
+
+// Badge polling: show unread application count in browser tab title
+var _badgeIntervalId = null;
+var _badgeOriginalTitle = '';
+
+function startBadgePolling() {
+  _badgeOriginalTitle = document.title;
+
+  async function updateBadge() {
+    if (document.hidden) return;
+    try {
+      var res = await fetch('/api/admin/applications/new-count', { credentials: 'same-origin' });
+      if (!res.ok) return;
+      var data = await res.json();
+      var count = data.count || 0;
+      if (count > 0) {
+        document.title = '(' + count + ') ' + _badgeOriginalTitle;
+      } else {
+        document.title = _badgeOriginalTitle;
+      }
+    } catch (e) {
+      // Silently ignore network errors
+    }
+  }
+
+  updateBadge();
+  _badgeIntervalId = setInterval(updateBadge, 60000);
 }
 
 // Shared admin CSS (injected once)
@@ -137,6 +192,7 @@ function injectAdminStyles() {
     'html.light .admin-nav { background: #FFFFFF; border-right-color: #E5E7EB; }',
     'html.light .admin-nav-link:hover { background: #F3F4F6; }',
     'html.light .admin-nav-link.active { background: #2EA3E015; }',
+    'html.light .admin-hamburger { background: #FFFFFF; border-color: #E5E7EB; color: #1A1A2E; }',
     'html.light .form-group input, html.light .form-group select, html.light .form-group textarea { background: #F9FAFB; border-color: #E5E7EB; color: #1A1A2E; }',
     'html.light .btn-secondary { background: #E5E7EB; color: #1A1A2E; }',
     'html.light .modal { background: #FFFFFF; border-color: #E5E7EB; }',
@@ -145,7 +201,9 @@ function injectAdminStyles() {
     '.admin-nav { width: 220px; min-height: 100vh; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px 0; position: fixed; left: 0; top: 0; }',
     '.admin-nav-logo { padding: 0 20px 24px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }',
     '.admin-nav-links { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 8px; }',
-    '.admin-nav-link { display: block; padding: 10px 16px; color: var(--text-muted); text-decoration: none; font-size: 14px; border-radius: 6px; transition: all 0.15s; }',
+    '.admin-nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: var(--text-muted); text-decoration: none; font-size: 14px; border-radius: 6px; transition: all 0.15s; }',
+    '.admin-nav-link .nav-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 20px; height: 20px; }',
+    '.admin-nav-link .nav-icon svg { display: block; }',
     '.admin-nav-link:hover { background: var(--border); color: var(--text); }',
     '.admin-nav-link.active { background: var(--blue)15; color: var(--blue); font-weight: 600; }',
     '.admin-nav-footer { padding: 16px 20px; border-top: 1px solid var(--border); margin-top: auto; }',
@@ -185,7 +243,26 @@ function injectAdminStyles() {
     '.rich-editor[data-empty="true"]:before { content: attr(data-placeholder); color: var(--text-muted); pointer-events: none; }',
     '.rich-editor:focus { border-color: var(--blue); }',
     'html.light .rich-editor { background: #F9FAFB; border-color: #E5E7EB; color: #1A1A2E; }',
-    '@media (max-width: 768px) { .admin-nav { width: 60px; } .admin-nav-link { font-size: 0; } .admin-main { margin-left: 60px; padding: 20px 16px; } .form-row { grid-template-columns: 1fr; } }',
+    '.admin-hamburger { display: none; position: fixed; top: 12px; left: 12px; z-index: 200; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px; cursor: pointer; color: var(--text); line-height: 0; }',
+    '@media (max-width: 768px) {',
+    '  .admin-hamburger { display: block; }',
+    '  .admin-nav { width: 260px; transform: translateX(-100%); transition: transform 0.25s ease; z-index: 150; box-shadow: 4px 0 20px rgba(0,0,0,0.15); }',
+    '  .admin-nav.open { transform: translateX(0); }',
+    '  .admin-main { margin-left: 0; padding: 60px 16px 20px; }',
+    '  .admin-main h1 { font-size: 20px; }',
+    '  .form-row { grid-template-columns: 1fr; }',
+    '  .stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }',
+    '  .stat-card { padding: 14px; }',
+    '  .stat-card .stat-value { font-size: 24px; }',
+    '  .card { padding: 16px; overflow-x: auto; }',
+    '  table { min-width: 500px; }',
+    '  .modal { margin: 16px; max-width: calc(100vw - 32px); padding: 24px 16px; }',
+    '  .modal-overlay { padding: 0; }',
+    '  .btn { padding: 10px 14px; font-size: 14px; }',
+    '}',
+    '@media (max-width: 480px) {',
+    '  .stat-grid { grid-template-columns: 1fr; }',
+    '}',
   ].join('\n');
   document.head.appendChild(style);
 }

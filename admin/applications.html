@@ -22,6 +22,7 @@
           <option value="valide">Validé</option>
           <option value="refuse">Refusé</option>
         </select>
+        <a href="/api/admin/applications/export" class="btn btn-secondary" download>Exporter (CSV)</a>
         <select id="filter-job" class="btn btn-secondary" style="cursor:pointer">
           <option value="">Toutes les offres</option>
           <option value="spontanee">Candidatures spontanées</option>
@@ -29,10 +30,22 @@
       </div>
     </div>
 
+    <div id="bulk-bar" style="display:none;padding:12px 16px;background:#2EA3E010;border:1px solid var(--blue);border-radius:8px;margin-bottom:12px;align-items:center;gap:12px;">
+      <span id="bulk-count" style="font-weight:600;color:var(--blue)">0 sélectionnées</span>
+      <select id="bulk-action" class="btn btn-sm btn-secondary">
+        <option value="">Action groupée...</option>
+        <option value="contacte">Marquer contacté</option>
+        <option value="refuse">Refuser</option>
+      </select>
+      <button class="btn btn-sm btn-primary" id="btn-bulk-apply">Appliquer</button>
+      <button class="btn btn-sm btn-secondary" id="btn-bulk-cancel">Annuler</button>
+    </div>
+
     <div class="card">
       <table>
         <thead>
           <tr>
+            <th><input type="checkbox" id="select-all"></th>
             <th></th>
             <th>Candidat</th>
             <th>Poste</th>
@@ -94,6 +107,13 @@
           opt.textContent = j.title;
           select.appendChild(opt);
         });
+        // Pre-select job filter from URL param
+        var urlParams = new URLSearchParams(window.location.search);
+        var jobIdParam = urlParams.get('job_id');
+        if (jobIdParam) {
+          select.value = jobIdParam;
+          loadApplications();
+        }
       } catch (err) { console.error('Load job filter error:', err); }
     }
 
@@ -130,6 +150,7 @@
       tbody.innerHTML = applications.map(function(a) {
         var newBadge = a.is_new ? '<span class="badge-new"></span>' : '';
         return '<tr style="cursor:pointer" data-action="open" data-id="' + a.id + '">' +
+          '<td onclick="event.stopPropagation()"><input type="checkbox" class="app-checkbox" data-id="' + a.id + '" data-status="' + a.status + '"></td>' +
           '<td>' + newBadge + '</td>' +
           '<td><strong>' + escapeHtml(a.prenom) + ' ' + escapeHtml(a.nom) + '</strong><br><span style="font-size:12px;color:var(--text-muted)">' + escapeHtml(a.email) + '</span></td>' +
           '<td>' + escapeHtml(a.poste_actuel) + '</td>' +
@@ -139,6 +160,101 @@
           '<td><button class="btn btn-sm btn-secondary" data-action="open" data-id="' + a.id + '">Voir</button></td>' +
         '</tr>';
       }).join('');
+      // Reset bulk selection state after re-render
+      document.getElementById('select-all').checked = false;
+      updateBulkBar();
+    }
+
+    // --- Bulk selection logic ---
+    var bulkMode = false; // true when reject modal is used for bulk action
+
+    function getSelectedIds() {
+      var checkboxes = document.querySelectorAll('.app-checkbox:checked');
+      var ids = [];
+      checkboxes.forEach(function(cb) { ids.push(cb.getAttribute('data-id')); });
+      return ids;
+    }
+
+    function updateBulkBar() {
+      var selected = getSelectedIds();
+      var bar = document.getElementById('bulk-bar');
+      if (selected.length > 0) {
+        bar.style.display = 'flex';
+        document.getElementById('bulk-count').textContent = selected.length + ' sélectionnée' + (selected.length > 1 ? 's' : '');
+      } else {
+        bar.style.display = 'none';
+      }
+    }
+
+    // Select all checkbox
+    document.getElementById('select-all').addEventListener('change', function() {
+      var checked = this.checked;
+      document.querySelectorAll('.app-checkbox').forEach(function(cb) {
+        cb.checked = checked;
+      });
+      updateBulkBar();
+    });
+
+    // Delegate checkbox change events on the table
+    document.getElementById('applications-table').addEventListener('change', function(e) {
+      if (e.target.classList.contains('app-checkbox')) {
+        // Update select-all state
+        var all = document.querySelectorAll('.app-checkbox');
+        var allChecked = document.querySelectorAll('.app-checkbox:checked');
+        document.getElementById('select-all').checked = all.length > 0 && all.length === allChecked.length;
+        updateBulkBar();
+      }
+    });
+
+    // Bulk cancel
+    document.getElementById('btn-bulk-cancel').addEventListener('click', function() {
+      document.querySelectorAll('.app-checkbox').forEach(function(cb) { cb.checked = false; });
+      document.getElementById('select-all').checked = false;
+      document.getElementById('bulk-action').value = '';
+      updateBulkBar();
+    });
+
+    // Bulk apply
+    document.getElementById('btn-bulk-apply').addEventListener('click', function() {
+      var action = document.getElementById('bulk-action').value;
+      if (!action) {
+        alert('Veuillez sélectionner une action groupée.');
+        return;
+      }
+      var ids = getSelectedIds();
+      if (ids.length === 0) {
+        alert('Aucune candidature sélectionnée.');
+        return;
+      }
+      if (action === 'refuse') {
+        // Use the rejection modal in bulk mode
+        bulkMode = true;
+        openReject();
+      } else {
+        // Direct bulk status update
+        bulkStatusUpdate(ids, action, null);
+      }
+    });
+
+    async function bulkStatusUpdate(ids, status, rejectionReason) {
+      try {
+        var body = { ids: ids, status: status };
+        if (rejectionReason) body.rejection_reason = rejectionReason;
+        var res = await fetchAPI('/api/admin/applications/bulk-status', {
+          method: 'PATCH',
+          body: body,
+        });
+        if (res.ok) {
+          document.getElementById('bulk-action').value = '';
+          loadApplications();
+        } else {
+          var data = await res.json();
+          alert(data.error || 'Erreur lors de la mise à jour groupée.');
+        }
+      } catch (err) {
+        console.error('Bulk status update error:', err);
+        alert('Erreur lors de la mise à jour groupée.');
+      }
     }
 
     async function openDetail(id) {
@@ -181,7 +297,23 @@
       if (app.cv_original_name) html += ' <span style="font-size:12px;color:var(--text-muted)">' + escapeHtml(app.cv_original_name) + '</span>';
       html += '</div>';
 
+      html += '<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">';
+      html += '<h3 style="font-size:14px;font-weight:600;margin-bottom:12px">Notes internes</h3>';
+      html += '<div id="notes-list"></div>';
+      html += '<div style="margin-top:12px;display:flex;gap:8px">';
+      html += '<input type="text" id="note-input" placeholder="Ajouter une note..." style="flex:1;padding:8px 12px;background:var(--deep);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:13px;outline:none">';
+      html += '<button class="btn btn-sm btn-primary" id="btn-add-note">Ajouter</button>';
+      html += '</div>';
+      html += '</div>';
+
       document.getElementById('detail-content').innerHTML = html;
+
+      // Load notes and bind note events
+      loadNotes(id);
+      document.getElementById('btn-add-note').addEventListener('click', function() { addNote(id); });
+      document.getElementById('note-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); addNote(id); }
+      });
 
       // Status transition buttons
       var transitions = {
@@ -200,6 +332,47 @@
 
       document.getElementById('detail-modal').style.display = 'flex';
       loadApplications();
+    }
+
+    async function loadNotes(appId) {
+      try {
+        var res = await fetchAPI('/api/admin/applications/' + appId + '/notes');
+        var notes = await res.json();
+        var container = document.getElementById('notes-list');
+        if (notes.length === 0) {
+          container.innerHTML = '<div style="font-size:13px;color:var(--text-muted)">Aucune note pour le moment.</div>';
+          return;
+        }
+        container.innerHTML = notes.map(function(n) {
+          return '<div style="margin-bottom:10px;padding:8px 12px;background:var(--deep);border-radius:6px;font-size:13px">' +
+            '<div><strong>' + escapeHtml(n.admin_name || 'Admin') + '</strong> <span style="color:var(--text-muted);font-size:12px">' + formatDate(n.created_at) + '</span></div>' +
+            '<div style="margin-top:4px">' + escapeHtml(n.content) + '</div>' +
+          '</div>';
+        }).join('');
+      } catch (err) {
+        console.error('Load notes error:', err);
+      }
+    }
+
+    async function addNote(appId) {
+      var input = document.getElementById('note-input');
+      var content = input.value.trim();
+      if (!content) return;
+      try {
+        var res = await fetchAPI('/api/admin/applications/' + appId + '/notes', {
+          method: 'POST',
+          body: { content: content },
+        });
+        if (res.ok) {
+          input.value = '';
+          loadNotes(appId);
+        } else {
+          var data = await res.json();
+          alert(data.error || 'Erreur.');
+        }
+      } catch (err) {
+        console.error('Add note error:', err);
+      }
     }
 
     function closeDetail() {
@@ -235,6 +408,7 @@
 
     function closeReject() {
       document.getElementById('reject-modal').style.display = 'none';
+      bulkMode = false;
     }
 
     async function confirmReject() {
@@ -245,18 +419,28 @@
       }
       var btn = document.getElementById('btn-reject');
       btn.disabled = true;
-      var res = await fetchAPI('/api/admin/applications/' + currentAppId + '/status', {
-        method: 'PATCH',
-        body: { status: 'refuse', rejection_reason: reason },
-      });
-      btn.disabled = false;
-      if (res.ok) {
+
+      if (bulkMode) {
+        // Bulk rejection
+        var ids = getSelectedIds();
+        await bulkStatusUpdate(ids, 'refuse', reason);
+        btn.disabled = false;
         closeReject();
-        closeDetail();
-        loadApplications();
       } else {
-        var data = await res.json();
-        document.getElementById('reject-error').textContent = data.error || 'Erreur.';
+        // Single rejection
+        var res = await fetchAPI('/api/admin/applications/' + currentAppId + '/status', {
+          method: 'PATCH',
+          body: { status: 'refuse', rejection_reason: reason },
+        });
+        btn.disabled = false;
+        if (res.ok) {
+          closeReject();
+          closeDetail();
+          loadApplications();
+        } else {
+          var data = await res.json();
+          document.getElementById('reject-error').textContent = data.error || 'Erreur.';
+        }
       }
     }
 
