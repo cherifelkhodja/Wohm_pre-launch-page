@@ -160,6 +160,17 @@ async function initDB() {
       );
     `);
 
+    // --- Application notes (internal comments) ---
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS application_notes (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        application_id UUID REFERENCES applications(id) ON DELETE CASCADE,
+        admin_id UUID REFERENCES admins(id) ON DELETE SET NULL,
+        content TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+
     // --- Migrations (add columns if missing) ---
     await client.query(`
       ALTER TABLE applications ADD COLUMN IF NOT EXISTS annees_experience INTEGER;

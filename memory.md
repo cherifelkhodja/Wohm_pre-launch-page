@@ -244,3 +244,39 @@
 ### fix: Placeholders salaire du formulaire de candidature
 - Salaire actuel : 45 000 → 35 000
 - Salaire souhaité : 50 000 → 40 000
+
+### feat: Export CSV des inscrits et candidatures
+- Endpoint `GET /api/admin/subscribers/export` : export CSV des inscrits (Prénom, Email, Voiture, Date d'inscription)
+- Endpoint `GET /api/admin/applications/export` : export CSV des candidatures (Civilité, Prénom, Nom, Email, Téléphone, Poste, Statut pro, Salaire actuel, Salaire souhaité, Offre, Statut, Date)
+- Les deux routes protégées par `requireSession` et `adminLimiter`
+- Headers CSV avec BOM UTF-8 pour compatibilité Excel, Content-Disposition avec date du jour
+- Bouton export ajouté dans le dashboard admin (Actions rapides) et la page candidatures (à côté des filtres)
+
+### feat: Filtres par plage de dates sur le dashboard admin
+- Barre de filtres sous le titre du dashboard : boutons rapides (Tout, 7j, 30j, 90j) + sélecteurs de dates personnalisées
+- Le bouton actif est mis en surbrillance (fond bleu, texte blanc)
+- Backend : `GET /api/admin/subscribers/count` accepte `from` et `to` (ISO date) pour filtrer par `created_at`
+- Backend : `GET /api/admin/visits/count` accepte `from` et `to` pour filtrer par `created_at`
+- Backend : `GET /api/admin/applications` accepte `from` et `to` pour filtrer par `a.created_at`
+- Sans paramètres, le comportement reste inchangé (toutes les données)
+
+### feat: Notes internes sur les candidatures (commentaires admin)
+- Nouvelle table `application_notes` (id, application_id, admin_id, content, created_at) avec CASCADE sur suppression candidature et SET NULL sur suppression admin
+- Endpoint `GET /api/admin/applications/:id/notes` : liste des notes avec nom de l'admin (JOIN admins), triées par date décroissante
+- Endpoint `POST /api/admin/applications/:id/notes` : création d'une note (contenu non vide requis), associée à l'admin connecté via session
+- Section "Notes internes" dans la modale de détail candidature (admin/applications.html) : liste des notes existantes + champ de saisie avec bouton "Ajouter"
+- Chaque note affiche le prénom de l'admin (gras), la date, et le contenu
+- Soumission possible via clic sur "Ajouter" ou touche Entrée
+
+### feat: Badge de notification dans l'onglet navigateur
+- Polling toutes les 60 secondes de `GET /api/admin/applications/new-count`
+- Préfixe du titre d'onglet avec le compteur : `(3) WOHM Admin — Dashboard`
+- Ne poll pas si l'onglet est caché (`document.hidden`)
+- Activé automatiquement sur toutes les pages admin via `renderAdminNav()`
+
+### feat: Actions groupées sur les candidatures
+- Colonne checkbox ajoutée dans le tableau des candidatures (header "tout sélectionner" + checkbox par ligne)
+- Barre d'action groupée apparaît quand au moins une candidature est sélectionnée
+- Actions disponibles : Marquer contacté, Refuser (avec raison obligatoire)
+- Endpoint `PATCH /api/admin/applications/bulk-status` : mise à jour en lot avec validation des transitions
+- Envoi automatique des emails de refus pour chaque candidature refusée en lot

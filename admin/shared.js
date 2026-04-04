@@ -149,6 +149,37 @@ function renderAdminNav(currentPage) {
   });
 
   document.getElementById('btn-logout').addEventListener('click', logout);
+
+  // Start polling for new application count badge
+  startBadgePolling();
+}
+
+// Badge polling: show unread application count in browser tab title
+var _badgeIntervalId = null;
+var _badgeOriginalTitle = '';
+
+function startBadgePolling() {
+  _badgeOriginalTitle = document.title;
+
+  async function updateBadge() {
+    if (document.hidden) return;
+    try {
+      var res = await fetch('/api/admin/applications/new-count', { credentials: 'same-origin' });
+      if (!res.ok) return;
+      var data = await res.json();
+      var count = data.count || 0;
+      if (count > 0) {
+        document.title = '(' + count + ') ' + _badgeOriginalTitle;
+      } else {
+        document.title = _badgeOriginalTitle;
+      }
+    } catch (e) {
+      // Silently ignore network errors
+    }
+  }
+
+  updateBadge();
+  _badgeIntervalId = setInterval(updateBadge, 60000);
 }
 
 // Shared admin CSS (injected once)
