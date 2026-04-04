@@ -107,6 +107,13 @@
           opt.textContent = j.title;
           select.appendChild(opt);
         });
+        // Pre-select job filter from URL param
+        var urlParams = new URLSearchParams(window.location.search);
+        var jobIdParam = urlParams.get('job_id');
+        if (jobIdParam) {
+          select.value = jobIdParam;
+          loadApplications();
+        }
       } catch (err) { console.error('Load job filter error:', err); }
     }
 

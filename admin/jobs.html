@@ -154,7 +154,7 @@
           ? '<span style="color:var(--text-muted)">Archivée</span>'
           : '<span style="color:var(--success)">Active</span>';
         return '<tr>' +
-          '<td><strong>' + escapeHtml(j.title) + '</strong></td>' +
+          '<td><a href="/admin/applications.html?job_id=' + j.id + '" style="color:var(--text);text-decoration:none;font-weight:700"><strong>' + escapeHtml(j.title) + '</strong></a></td>' +
           '<td>' + escapeHtml(j.contract_type) + '</td>' +
           '<td>' + escapeHtml(j.location || '—') + '</td>' +
           '<td><span style="font-weight:600;color:var(--blue)">' + (j.view_count || 0) + '</span></td>' +
