@@ -215,3 +215,32 @@
 - Création de `admin/settings.html` — page dédiée avec éditeur de présentation
 - Suppression du bloc présentation du dashboard (`admin/index.html`)
 - Ajout de l'entrée "Paramètres" dans la navigation admin (`admin/shared.js`)
+
+---
+
+## 2026-04-04
+
+### feat: Compteur de visiteurs unique par offre d'emploi
+- Nouvelle table `job_views` (job_posting_id, ip, user_agent) avec contrainte UNIQUE(job_posting_id, ip)
+- Tracking automatique à chaque consultation d'une offre via `/api/jobs/:slug` (IP unique par annonce)
+- Endpoint admin `GET /api/admin/jobs/:id/views` pour le détail des vues
+- Colonne "Vues" ajoutée dans la liste admin des offres avec compteur d'IP uniques
+- Le compteur JOIN est intégré au listing admin pour éviter les requêtes N+1
+
+### fix: Refonte des icônes du menu admin
+- Remplacement des caractères Unicode (&#9636;, &#9997;, &#128196;, &#9881;) par des icônes SVG (Feather-style)
+- Icônes : Dashboard (grille), Offres (valise), Candidatures (utilisateurs), Paramètres (engrenage), Déconnexion (flèche)
+- Structure HTML améliorée avec `<span class="nav-icon">` et `<span class="nav-label">` pour un meilleur contrôle CSS
+
+### feat: Version mobile de l'admin
+- Menu hamburger (☰) fixe en haut à gauche sur mobile, ouvre la sidebar en slide-over
+- Sidebar coulissante 260px avec fermeture au clic extérieur ou sur un lien
+- Contenu admin pleine largeur sans marge gauche sur mobile
+- Grille de stats responsive : 2 colonnes tablette, 1 colonne petit mobile
+- Tables avec scroll horizontal dans les cartes
+- Modales adaptées (largeur calc(100vw - 32px), padding réduit)
+- Boutons agrandis sur mobile pour meilleure accessibilité tactile
+
+### fix: Placeholders salaire du formulaire de candidature
+- Salaire actuel : 45 000 → 35 000
+- Salaire souhaité : 50 000 → 40 000

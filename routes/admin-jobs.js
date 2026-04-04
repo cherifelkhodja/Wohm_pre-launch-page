@@ -42,18 +42,45 @@ function validateJobInput(body) {
   return errors;
 }
 
-// GET /api/admin/jobs — list all jobs (including archived)
+// GET /api/admin/jobs — list all jobs (including archived) with view counts
 router.get('/jobs', requireSession, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT j.*, a.prenom AS created_by_name
+      SELECT j.*, a.prenom AS created_by_name,
+             COALESCE(v.view_count, 0)::int AS view_count
       FROM job_postings j
       LEFT JOIN admins a ON j.created_by = a.id
+      LEFT JOIN (
+        SELECT job_posting_id, COUNT(*)::int AS view_count
+        FROM job_views
+        GROUP BY job_posting_id
+      ) v ON v.job_posting_id = j.id
       ORDER BY j.created_at DESC
     `);
     return res.json(result.rows);
   } catch (err) {
     console.error('List jobs error:', err.message);
+    return res.status(500).json({ error: 'Une erreur est survenue.' });
+  }
+});
+
+// GET /api/admin/jobs/:id/views — view details for a specific job
+router.get('/jobs/:id/views', requireSession, async (req, res) => {
+  try {
+    const count = await pool.query(
+      'SELECT COUNT(*)::int AS total FROM job_views WHERE job_posting_id = $1',
+      [req.params.id]
+    );
+    const views = await pool.query(
+      `SELECT ip, user_agent, created_at
+       FROM job_views
+       WHERE job_posting_id = $1
+       ORDER BY created_at DESC`,
+      [req.params.id]
+    );
+    return res.json({ total: count.rows[0].total, views: views.rows });
+  } catch (err) {
+    console.error('Get job views error:', err.message);
     return res.status(500).json({ error: 'Une erreur est survenue.' });
   }
 });

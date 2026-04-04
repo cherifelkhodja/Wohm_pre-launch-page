@@ -148,6 +148,18 @@ async function initDB() {
       );
     `);
 
+    // --- Job views (unique IP per job posting) ---
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS job_views (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        job_posting_id UUID REFERENCES job_postings(id) ON DELETE CASCADE,
+        ip VARCHAR(45) NOT NULL,
+        user_agent TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(job_posting_id, ip)
+      );
+    `);
+
     // --- Migrations (add columns if missing) ---
     await client.query(`
       ALTER TABLE applications ADD COLUMN IF NOT EXISTS annees_experience INTEGER;
