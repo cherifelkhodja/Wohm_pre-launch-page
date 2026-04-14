@@ -307,6 +307,12 @@
 - `services/s3.js` : encodage RFC 5987 (`filename*=UTF-8''...` + fallback ASCII via `filename="..."`) dans `ResponseContentDisposition` pour supporter les noms de fichiers non-ASCII (ex : `CV_Mélanie.pdf`)
 - `admin/applications.html` : le visionnage d'un CV ne déclenche plus `loadApplications()` (reload complet de la liste) — mise à jour locale du flag `is_new` + `renderApplications()` pour éviter les dérives d'index pendant la navigation rapide prev/next
 
+### remove: Désactivation de l'envoi d'email au candidat en cas de refus
+- Suppression de l'appel à `sendRejectionEmail()` dans `routes/admin-applications.js` pour le refus unitaire (`PATCH /:id/status`) et le refus groupé (`PATCH /bulk-status`)
+- Suppression de l'import correspondant
+- La fonction `sendRejectionEmail()` reste disponible dans `services/email.js` pour réactivation ultérieure
+- Le changement de statut et la sauvegarde de la raison en BDD sont inchangés
+
 ### refactor: Visionneuse CV intégrée dans la modale candidature (plus d'overlay plein écran)
 - Suppression de l'overlay plein écran `#cv-viewer` — le CV est maintenant affiché **dans la modale candidature** en side-by-side
 - Nouvelle structure modale : en-tête (nom candidat + contrôles navigation), corps en 2 colonnes (infos à gauche `440px` fixe, CV à droite flex), pied de page (actions)

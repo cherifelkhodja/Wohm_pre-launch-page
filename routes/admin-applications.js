@@ -3,7 +3,6 @@ const { pool } = require('../db');
 const { requireSession } = require('../middleware/auth');
 const { createRateLimiter } = require('../middleware/rate-limiter');
 const { getPresignedCVUrl } = require('../services/s3');
-const { sendRejectionEmail } = require('../services/email');
 
 const router = Router();
 const adminLimiter = createRateLimiter(10, 60000);
@@ -256,13 +255,6 @@ router.patch('/applications/:id/status', requireSession, async (req, res) => {
       ]
     );
 
-    // Send rejection email asynchronously
-    if (status === 'refuse') {
-      const app = result.rows[0];
-      sendRejectionEmail(app.email, app.prenom, rejection_reason.trim())
-        .catch(err => console.error('Rejection email error:', err.message));
-    }
-
     return res.json(result.rows[0]);
   } catch (err) {
     console.error('Update status error:', err.message);
@@ -327,14 +319,6 @@ router.patch('/applications/bulk-status', requireSession, async (req, res) => {
       'UPDATE applications SET status = $1, rejection_reason = $2, updated_at = NOW() WHERE id IN (' + updatePlaceholders + ')',
       [status, status === 'refuse' ? rejection_reason.trim() : null].concat(ids)
     );
-
-    // Send rejection emails asynchronously if refusing
-    if (status === 'refuse') {
-      result.rows.forEach(function(app) {
-        sendRejectionEmail(app.email, app.prenom, rejection_reason.trim())
-          .catch(function(err) { console.error('Bulk rejection email error:', err.message); });
-      });
-    }
 
     return res.json({ updated: ids.length });
   } catch (err) {
