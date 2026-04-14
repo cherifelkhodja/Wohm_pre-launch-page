@@ -46,6 +46,7 @@ function formatDateShort(dateStr) {
 function statusBadge(status) {
   var labels = {
     'new': 'Nouveau',
+    'a_contacter': 'À contacter',
     'contacte': 'Contacté',
     'entretien': 'Entretien',
     'valide': 'Validé',
@@ -53,6 +54,7 @@ function statusBadge(status) {
   };
   var colors = {
     'new': '#2EA3E0',
+    'a_contacter': '#8B5CF6',
     'contacte': '#F39C12',
     'entretien': '#9B59B6',
     'valide': '#27AE60',
