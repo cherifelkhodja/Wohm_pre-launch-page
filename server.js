@@ -41,6 +41,7 @@ app.use(helmet({
       scriptSrc: ["'self'", "'unsafe-inline'"],
       connectSrc: ["'self'"],
       formAction: ["'self'"],
+      frameSrc: ["'self'", "https://*.amazonaws.com"],
     },
   },
   crossOriginEmbedderPolicy: false,

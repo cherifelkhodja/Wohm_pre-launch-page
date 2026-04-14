@@ -63,12 +63,41 @@
     </div>
   </div>
 
-  <!-- Detail Modal -->
+  <!-- Detail Modal (infos + CV viewer side-by-side) -->
   <div class="modal-overlay" id="detail-modal" style="display:none">
-    <div class="modal" style="max-width:640px">
-      <h2 id="detail-name"></h2>
-      <div id="detail-content"></div>
-      <div style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap" id="detail-actions"></div>
+    <div class="modal modal-detail" role="dialog" aria-modal="true" aria-labelledby="detail-name">
+      <div class="detail-header">
+        <div class="detail-header-titles">
+          <h2 id="detail-name">—</h2>
+          <div class="detail-header-subtitle" id="detail-subtitle"></div>
+        </div>
+        <div class="detail-header-controls">
+          <button class="cv-viewer-btn" id="detail-prev" title="Candidature précédente (←)" aria-label="Candidature précédente">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="cv-viewer-counter" id="detail-counter"></span>
+          <button class="cv-viewer-btn" id="detail-next" title="Candidature suivante (→)" aria-label="Candidature suivante">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="cv-viewer-btn" id="detail-close-x" title="Fermer (Échap)" aria-label="Fermer">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="detail-body">
+        <div class="detail-info" id="detail-content"></div>
+        <div class="detail-cv">
+          <div class="detail-cv-loading" id="detail-cv-loading">Chargement du CV…</div>
+          <iframe id="detail-cv-frame" title="Prévisualisation du CV" style="display:none"></iframe>
+          <div class="detail-cv-unsupported" id="detail-cv-unsupported" style="display:none">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div class="detail-cv-unsupported-title">Aperçu non disponible</div>
+            <div class="detail-cv-unsupported-text">Les fichiers Word ne peuvent pas être prévisualisés dans le navigateur.</div>
+            <button class="btn btn-primary" id="detail-cv-unsupported-download">Télécharger le CV</button>
+          </div>
+        </div>
+      </div>
+      <div class="detail-footer" id="detail-actions"></div>
     </div>
   </div>
 
@@ -92,6 +121,49 @@
   <script>
     injectAdminStyles();
     renderAdminNav('/admin/applications.html');
+
+    // --- Detail modal with embedded CV viewer styles ---
+    (function injectDetailStyles() {
+      var css = [
+        '.modal-detail { max-width: 1200px !important; width: calc(100vw - 40px); height: 85vh; max-height: 85vh; padding: 0 !important; display: flex; flex-direction: column; overflow: hidden; }',
+        '.detail-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; }',
+        '.detail-header-titles { min-width: 0; flex: 1; }',
+        '.detail-header-titles h2 { font-size: 18px; font-weight: 600; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }',
+        '.detail-header-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }',
+        '.detail-header-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }',
+        '.cv-viewer-counter { font-size: 12px; color: var(--text-muted); margin: 0 4px; white-space: nowrap; }',
+        '.cv-viewer-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text); cursor: pointer; transition: background 0.15s, border-color 0.15s; padding: 0; }',
+        '.cv-viewer-btn:hover:not(:disabled) { background: var(--border); border-color: var(--blue); color: var(--blue); }',
+        '.cv-viewer-btn:disabled { opacity: 0.35; cursor: not-allowed; }',
+        '.detail-body { flex: 1; display: flex; min-height: 0; overflow: hidden; }',
+        '.detail-info { flex: 0 0 440px; padding: 20px 24px; overflow-y: auto; border-right: 1px solid var(--border); }',
+        '.detail-cv { flex: 1; position: relative; background: #525659; display: flex; min-width: 0; }',
+        'html.light .detail-cv { background: #e5e7eb; }',
+        '.detail-cv iframe { width: 100%; height: 100%; border: 0; background: #fff; }',
+        '.detail-cv-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; }',
+        'html.light .detail-cv-loading { color: #1A1A2E; }',
+        '.detail-cv-unsupported { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #fff; padding: 24px; text-align: center; }',
+        'html.light .detail-cv-unsupported { color: #1A1A2E; }',
+        '.detail-cv-unsupported-title { font-size: 16px; font-weight: 600; }',
+        '.detail-cv-unsupported-text { font-size: 13px; opacity: 0.8; max-width: 420px; }',
+        '.detail-footer { padding: 14px 24px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; flex-shrink: 0; }',
+        '.btn-icon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; padding: 0; background: var(--border); color: var(--text); border-radius: 6px; border: none; cursor: pointer; transition: opacity 0.15s; }',
+        '.btn-icon:hover { opacity: 0.85; }',
+        '@media (max-width: 960px) {',
+        '  .modal-detail { width: calc(100vw - 16px); height: calc(100vh - 16px); max-height: calc(100vh - 16px); }',
+        '  .detail-body { flex-direction: column; }',
+        '  .detail-info { flex: 0 0 auto; max-height: 45%; border-right: none; border-bottom: 1px solid var(--border); }',
+        '  .detail-cv { flex: 1; min-height: 45%; }',
+        '  .detail-header { padding: 12px 16px; }',
+        '  .detail-header-titles h2 { font-size: 15px; }',
+        '  .cv-viewer-counter { display: none; }',
+        '  .detail-footer { padding: 12px 16px; }',
+        '}',
+      ].join('\n');
+      var style = document.createElement('style');
+      style.textContent = css;
+      document.head.appendChild(style);
+    })();
 
     var applications = [];
     var currentAppId = null;
@@ -157,7 +229,12 @@
           '<td>' + (a.job_title ? escapeHtml(a.job_title) : '<span style="font-style:italic;color:var(--blue)">Spontan\u00e9e</span>') + '</td>' +
           '<td>' + statusBadge(a.status) + '</td>' +
           '<td style="font-size:13px;color:var(--text-muted)">' + formatDateShort(a.created_at) + '</td>' +
-          '<td><button class="btn btn-sm btn-secondary" data-action="open" data-id="' + a.id + '">Voir</button></td>' +
+          '<td onclick="event.stopPropagation()" style="white-space:nowrap">' +
+            '<button class="btn btn-sm btn-secondary" data-action="open" data-id="' + a.id + '">Voir</button> ' +
+            '<button class="btn-icon" data-action="download-row" data-id="' + a.id + '" title="Télécharger le CV" aria-label="Télécharger le CV">' +
+              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+            '</button>' +
+          '</td>' +
         '</tr>';
       }).join('');
       // Reset bulk selection state after re-render
@@ -259,10 +336,16 @@
 
     async function openDetail(id) {
       currentAppId = id;
-      var res = await fetchAPI('/api/admin/applications/' + id);
-      var app = await res.json();
+      // Fetch detail and CV URL in parallel
+      var detailPromise = fetchAPI('/api/admin/applications/' + id).then(function(r) { return r.json(); });
+      var cvPromise = fetchAPI('/api/admin/applications/' + id + '/cv').then(function(r) { return r.json(); }).catch(function() { return null; });
+      var app = await detailPromise;
 
       document.getElementById('detail-name').textContent = (app.civilite ? app.civilite + ' ' : '') + app.prenom + ' ' + app.nom;
+      document.getElementById('detail-subtitle').textContent = app.poste_actuel || '';
+
+      // Update navigation controls (position within current list)
+      updateDetailNav(id);
 
       var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:14px">';
       html += '<div><strong style="color:var(--text-muted);font-size:12px">Email</strong><br>' + escapeHtml(app.email) + '</div>';
@@ -293,8 +376,9 @@
       }
       html += '</div>';
 
-      html += '<div style="margin-top:12px"><button class="btn btn-sm btn-primary" data-action="download-cv">Télécharger le CV</button>';
-      if (app.cv_original_name) html += ' <span style="font-size:12px;color:var(--text-muted)">' + escapeHtml(app.cv_original_name) + '</span>';
+      html += '<div style="margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
+      html += '<button class="btn btn-sm btn-secondary" data-action="download-cv">Télécharger le CV</button>';
+      if (app.cv_original_name) html += '<span style="font-size:12px;color:var(--text-muted)">' + escapeHtml(app.cv_original_name) + '</span>';
       html += '</div>';
 
       html += '<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">';
@@ -331,7 +415,84 @@
       document.getElementById('detail-actions').innerHTML = actions;
 
       document.getElementById('detail-modal').style.display = 'flex';
-      loadApplications();
+      document.body.style.overflow = 'hidden';
+
+      // Render CV in embedded iframe (or show fallback)
+      renderCvInModal(id, cvPromise);
+
+      // Update local "is_new" flag without reshuffling the list
+      var idx = applications.findIndex(function(a) { return a.id === id; });
+      if (idx !== -1 && applications[idx].is_new) {
+        applications[idx].is_new = false;
+        renderApplications();
+      }
+    }
+
+    function updateDetailNav(currentId) {
+      var idx = applications.findIndex(function(a) { return a.id === currentId; });
+      var counter = document.getElementById('detail-counter');
+      var prevBtn = document.getElementById('detail-prev');
+      var nextBtn = document.getElementById('detail-next');
+      if (idx === -1) {
+        counter.textContent = '';
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        return;
+      }
+      counter.textContent = (idx + 1) + ' / ' + applications.length;
+      prevBtn.disabled = (idx <= 0);
+      nextBtn.disabled = (idx >= applications.length - 1);
+    }
+
+    async function renderCvInModal(appId, cvPromise) {
+      var frame = document.getElementById('detail-cv-frame');
+      var loading = document.getElementById('detail-cv-loading');
+      var unsupported = document.getElementById('detail-cv-unsupported');
+
+      // Reset
+      frame.style.display = 'none';
+      frame.src = 'about:blank';
+      unsupported.style.display = 'none';
+      loading.style.display = 'flex';
+      loading.textContent = 'Chargement du CV…';
+
+      try {
+        var data = await cvPromise;
+        // If user navigated to another candidate in the meantime, ignore this response
+        if (currentAppId !== appId) return;
+        if (!data || !data.url) {
+          loading.textContent = 'Impossible de charger le CV.';
+          return;
+        }
+
+        if (data.extension === 'pdf') {
+          frame.onload = function() { loading.style.display = 'none'; frame.style.display = 'block'; };
+          frame.src = data.url;
+          // Fallback in case onload doesn't fire quickly
+          setTimeout(function() {
+            if (currentAppId === appId && loading.style.display !== 'none') {
+              loading.style.display = 'none';
+              frame.style.display = 'block';
+            }
+          }, 1800);
+        } else {
+          // Word or unknown — show download fallback
+          loading.style.display = 'none';
+          unsupported.style.display = 'flex';
+        }
+      } catch (err) {
+        console.error('CV render error:', err);
+        loading.textContent = 'Erreur lors du chargement du CV.';
+      }
+    }
+
+    function detailNavigate(direction) {
+      if (!currentAppId) return;
+      var idx = applications.findIndex(function(a) { return a.id === currentAppId; });
+      if (idx === -1) return;
+      var newIdx = idx + direction;
+      if (newIdx < 0 || newIdx >= applications.length) return;
+      openDetail(applications[newIdx].id);
     }
 
     async function loadNotes(appId) {
@@ -377,14 +538,49 @@
 
     function closeDetail() {
       document.getElementById('detail-modal').style.display = 'none';
+      document.getElementById('detail-cv-frame').src = 'about:blank';
+      document.body.style.overflow = '';
       currentAppId = null;
     }
 
-    async function downloadCV() {
-      var res = await fetchAPI('/api/admin/applications/' + currentAppId + '/cv');
-      var data = await res.json();
-      if (data.url) window.open(data.url, '_blank');
+    async function downloadCV(appId) {
+      var id = appId || currentAppId;
+      if (!id) return;
+      try {
+        var res = await fetchAPI('/api/admin/applications/' + id + '/cv?download=1');
+        var data = await res.json();
+        if (data.url) {
+          // Trigger download via a temporary anchor so the attachment disposition applies
+          var a = document.createElement('a');
+          a.href = data.url;
+          a.rel = 'noopener';
+          if (data.filename) a.download = data.filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+      } catch (err) {
+        console.error('CV download error:', err);
+        alert('Impossible de télécharger le CV.');
+      }
     }
+
+    // Detail modal header controls
+    document.getElementById('detail-close-x').addEventListener('click', closeDetail);
+    document.getElementById('detail-prev').addEventListener('click', function() { detailNavigate(-1); });
+    document.getElementById('detail-next').addEventListener('click', function() { detailNavigate(1); });
+    document.getElementById('detail-cv-unsupported-download').addEventListener('click', function() { downloadCV(); });
+
+    // Keyboard shortcuts while the detail modal is open
+    document.addEventListener('keydown', function(e) {
+      if (document.getElementById('detail-modal').style.display !== 'flex') return;
+      // Don't interfere with typing in the note input or textareas
+      var tag = (e.target.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || e.target.isContentEditable) return;
+      if (e.key === 'Escape') { e.preventDefault(); closeDetail(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); detailNavigate(-1); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); detailNavigate(1); }
+    });
 
     async function changeStatus(status) {
       var res = await fetchAPI('/api/admin/applications/' + currentAppId + '/status', {
@@ -448,9 +644,13 @@
     document.getElementById('applications-table').addEventListener('click', function(e) {
       var el = e.target.closest('[data-action]');
       if (!el) return;
-      if (el.getAttribute('data-action') === 'open') {
+      var action = el.getAttribute('data-action');
+      if (action === 'open') {
         e.stopPropagation();
         openDetail(el.getAttribute('data-id'));
+      } else if (action === 'download-row') {
+        e.stopPropagation();
+        downloadCV(el.getAttribute('data-id'));
       }
     });
 

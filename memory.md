@@ -280,3 +280,40 @@
 - Actions disponibles : Marquer contacté, Refuser (avec raison obligatoire)
 - Endpoint `PATCH /api/admin/applications/bulk-status` : mise à jour en lot avec validation des transitions
 - Envoi automatique des emails de refus pour chaque candidature refusée en lot
+
+---
+
+## 2026-04-14
+
+### feat: Visionneuse de CV intégrée dans l'administration
+- Nouveau bouton "Voir le CV" dans la modale détail candidature → ouvre une visionneuse plein écran
+- Prévisualisation PDF native via `<iframe>` (URL S3 présignée avec `ResponseContentDisposition: inline`)
+- Fichiers Word (.doc/.docx) : fallback avec message clair et bouton de téléchargement (non prévisualisables nativement par les navigateurs)
+- Navigation rapide entre candidatures : flèches ← / → au clavier + boutons Précédent/Suivant dans l'en-tête
+- Raccourci Échap pour fermer la visionneuse
+- Compteur de position (ex : `3 / 47`) dans l'en-tête, en-tête affiche nom candidat + poste + nom du fichier CV
+- Bouton téléchargement disponible dans la visionneuse + dans la modale détail + icône téléchargement par ligne dans le tableau des candidatures
+- Marquage automatique "vue" quand la visionneuse charge un CV (badge bleu disparaît)
+- Backend : `GET /api/admin/applications/:id/cv` accepte `?download=1` pour forcer `Content-Disposition: attachment`, sinon `inline` pour prévisualisation ; retourne également l'extension détectée (pour que le client choisisse entre iframe et fallback)
+- `services/s3.js` : `getPresignedCVUrl(key, { disposition, filename })` ajoute `ResponseContentDisposition` à l'URL présignée
+- `server.js` : ajout de `frameSrc: ["'self'", "https://*.amazonaws.com"]` à la CSP Helmet pour autoriser l'iframe vers le bucket S3
+
+### fix: Invitation admin échouait toujours avec "Les mots de passe ne correspondent pas"
+- Le backend (`routes/admin-invites.js`) exige `password_confirm` dans le body POST `/api/admin/setup/:token`
+- Le frontend (`admin/setup.html`) validait bien l'égalité côté client mais n'envoyait pas `password_confirm` → rejet systématique côté serveur
+- Fix : ajout du champ `password_confirm` dans la requête POST
+
+### fix: Durcissements visionneuse CV (audit pré-merge main)
+- `services/s3.js` : encodage RFC 5987 (`filename*=UTF-8''...` + fallback ASCII via `filename="..."`) dans `ResponseContentDisposition` pour supporter les noms de fichiers non-ASCII (ex : `CV_Mélanie.pdf`)
+- `admin/applications.html` : le visionnage d'un CV ne déclenche plus `loadApplications()` (reload complet de la liste) — mise à jour locale du flag `is_new` + `renderApplications()` pour éviter les dérives d'index pendant la navigation rapide prev/next
+
+### refactor: Visionneuse CV intégrée dans la modale candidature (plus d'overlay plein écran)
+- Suppression de l'overlay plein écran `#cv-viewer` — le CV est maintenant affiché **dans la modale candidature** en side-by-side
+- Nouvelle structure modale : en-tête (nom candidat + contrôles navigation), corps en 2 colonnes (infos à gauche `440px` fixe, CV à droite flex), pied de page (actions)
+- Modale agrandie à `max-width: 1200px` / `height: 85vh`
+- Responsive : sur mobile (<960 px), les colonnes se superposent verticalement (infos en haut, CV en dessous)
+- Navigation prev/next entre candidatures directement dans l'en-tête de la modale (flèches ← / → au clavier + boutons) — met à jour infos ET CV sans rouvrir la modale
+- Suppression du bouton "Voir le CV" (CV toujours visible) ; bouton "Télécharger le CV" conservé dans le panneau infos
+- Bouton de fermeture `×` ajouté dans l'en-tête (en plus du bouton "Fermer" du pied de page)
+- Raccourcis clavier : Échap pour fermer, ← / → pour navigation — désactivés dans les champs de saisie (ne pas interférer avec les notes)
+- Fichiers Word : fallback avec message + bouton téléchargement, affiché dans le panneau CV

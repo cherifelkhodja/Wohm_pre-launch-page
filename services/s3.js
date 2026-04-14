@@ -31,12 +31,21 @@ async function uploadCV(buffer, key, contentType) {
   return key;
 }
 
-async function getPresignedCVUrl(key) {
+async function getPresignedCVUrl(key, options = {}) {
   const s3 = getS3Client();
-  const command = new GetObjectCommand({
+  const params = {
     Bucket: getBucket(),
     Key: key,
-  });
+  };
+  if (options.disposition) {
+    const original = options.filename || 'cv';
+    // RFC 5987: ASCII-only fallback + UTF-8 encoded filename*
+    const asciiFallback = original.replace(/[^\x20-\x7E]/g, '_').replace(/["\\]/g, '');
+    const encoded = encodeURIComponent(original);
+    params.ResponseContentDisposition =
+      `${options.disposition}; filename="${asciiFallback}"; filename*=UTF-8''${encoded}`;
+  }
+  const command = new GetObjectCommand(params);
   return getSignedUrl(s3, command, { expiresIn: 900 }); // 15 minutes
 }
 
