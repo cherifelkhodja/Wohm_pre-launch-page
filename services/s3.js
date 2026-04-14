@@ -31,12 +31,17 @@ async function uploadCV(buffer, key, contentType) {
   return key;
 }
 
-async function getPresignedCVUrl(key) {
+async function getPresignedCVUrl(key, options = {}) {
   const s3 = getS3Client();
-  const command = new GetObjectCommand({
+  const params = {
     Bucket: getBucket(),
     Key: key,
-  });
+  };
+  if (options.disposition) {
+    const safeName = (options.filename || 'cv').replace(/[\r\n"]/g, '');
+    params.ResponseContentDisposition = `${options.disposition}; filename="${safeName}"`;
+  }
+  const command = new GetObjectCommand(params);
   return getSignedUrl(s3, command, { expiresIn: 900 }); // 15 minutes
 }
 

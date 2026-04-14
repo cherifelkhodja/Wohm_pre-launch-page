@@ -72,6 +72,43 @@
     </div>
   </div>
 
+  <!-- CV Viewer (full-screen overlay) -->
+  <div class="cv-viewer" id="cv-viewer" style="display:none" role="dialog" aria-modal="true" aria-labelledby="cv-viewer-title">
+    <div class="cv-viewer-header">
+      <div class="cv-viewer-info">
+        <button class="cv-viewer-btn" id="cv-prev" title="Candidature précédente (←)" aria-label="Candidature précédente">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button class="cv-viewer-btn" id="cv-next" title="Candidature suivante (→)" aria-label="Candidature suivante">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <div class="cv-viewer-titles">
+          <div class="cv-viewer-title" id="cv-viewer-title">—</div>
+          <div class="cv-viewer-subtitle" id="cv-viewer-subtitle">—</div>
+        </div>
+      </div>
+      <div class="cv-viewer-actions">
+        <span class="cv-viewer-counter" id="cv-viewer-counter"></span>
+        <button class="cv-viewer-btn" id="cv-download" title="Télécharger le CV" aria-label="Télécharger le CV">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+        <button class="cv-viewer-btn" id="cv-close" title="Fermer (Échap)" aria-label="Fermer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="cv-viewer-body">
+      <div class="cv-viewer-loading" id="cv-viewer-loading">Chargement du CV…</div>
+      <iframe id="cv-viewer-frame" title="Prévisualisation du CV" style="display:none"></iframe>
+      <div class="cv-viewer-unsupported" id="cv-viewer-unsupported" style="display:none">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <div class="cv-viewer-unsupported-title">Aperçu non disponible</div>
+        <div class="cv-viewer-unsupported-text">Les fichiers Word ne peuvent pas être prévisualisés dans le navigateur.</div>
+        <button class="btn btn-primary" id="cv-unsupported-download">Télécharger le CV</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Rejection Modal -->
   <div class="modal-overlay" id="reject-modal" style="display:none">
     <div class="modal" style="max-width:440px">
@@ -92,6 +129,45 @@
   <script>
     injectAdminStyles();
     renderAdminNav('/admin/applications.html');
+
+    // --- CV viewer styles (scoped to this page) ---
+    (function injectViewerStyles() {
+      var css = [
+        '.cv-viewer { position: fixed; inset: 0; background: rgba(6, 10, 19, 0.92); z-index: 300; display: flex; flex-direction: column; }',
+        'html.light .cv-viewer { background: rgba(30, 41, 59, 0.85); }',
+        '.cv-viewer-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 20px; background: var(--surface); border-bottom: 1px solid var(--border); }',
+        '.cv-viewer-info { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }',
+        '.cv-viewer-titles { min-width: 0; margin-left: 8px; }',
+        '.cv-viewer-title { font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }',
+        '.cv-viewer-subtitle { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }',
+        '.cv-viewer-actions { display: flex; align-items: center; gap: 6px; }',
+        '.cv-viewer-counter { font-size: 12px; color: var(--text-muted); margin-right: 8px; white-space: nowrap; }',
+        '.cv-viewer-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text); cursor: pointer; transition: background 0.15s, border-color 0.15s; padding: 0; }',
+        '.cv-viewer-btn:hover:not(:disabled) { background: var(--border); border-color: var(--blue); color: var(--blue); }',
+        '.cv-viewer-btn:disabled { opacity: 0.35; cursor: not-allowed; }',
+        '.cv-viewer-body { flex: 1; position: relative; background: #525659; overflow: hidden; }',
+        'html.light .cv-viewer-body { background: #e5e7eb; }',
+        '.cv-viewer-body iframe { width: 100%; height: 100%; border: 0; background: #fff; }',
+        '.cv-viewer-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; }',
+        'html.light .cv-viewer-loading { color: #1A1A2E; }',
+        '.cv-viewer-unsupported { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #fff; padding: 24px; text-align: center; }',
+        'html.light .cv-viewer-unsupported { color: #1A1A2E; }',
+        '.cv-viewer-unsupported-title { font-size: 16px; font-weight: 600; }',
+        '.cv-viewer-unsupported-text { font-size: 13px; opacity: 0.8; max-width: 420px; }',
+        '.btn-icon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; padding: 0; background: var(--border); color: var(--text); border-radius: 6px; border: none; cursor: pointer; transition: opacity 0.15s; }',
+        '.btn-icon:hover { opacity: 0.85; }',
+        '@media (max-width: 768px) {',
+        '  .cv-viewer-header { padding: 10px 12px; gap: 8px; }',
+        '  .cv-viewer-title { font-size: 13px; }',
+        '  .cv-viewer-subtitle { font-size: 11px; }',
+        '  .cv-viewer-counter { display: none; }',
+        '  .cv-viewer-btn { width: 34px; height: 34px; }',
+        '}',
+      ].join('\n');
+      var style = document.createElement('style');
+      style.textContent = css;
+      document.head.appendChild(style);
+    })();
 
     var applications = [];
     var currentAppId = null;
@@ -157,7 +233,12 @@
           '<td>' + (a.job_title ? escapeHtml(a.job_title) : '<span style="font-style:italic;color:var(--blue)">Spontan\u00e9e</span>') + '</td>' +
           '<td>' + statusBadge(a.status) + '</td>' +
           '<td style="font-size:13px;color:var(--text-muted)">' + formatDateShort(a.created_at) + '</td>' +
-          '<td><button class="btn btn-sm btn-secondary" data-action="open" data-id="' + a.id + '">Voir</button></td>' +
+          '<td onclick="event.stopPropagation()" style="white-space:nowrap">' +
+            '<button class="btn btn-sm btn-secondary" data-action="open" data-id="' + a.id + '">Voir</button> ' +
+            '<button class="btn-icon" data-action="download-row" data-id="' + a.id + '" title="Télécharger le CV" aria-label="Télécharger le CV">' +
+              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+            '</button>' +
+          '</td>' +
         '</tr>';
       }).join('');
       // Reset bulk selection state after re-render
@@ -293,8 +374,10 @@
       }
       html += '</div>';
 
-      html += '<div style="margin-top:12px"><button class="btn btn-sm btn-primary" data-action="download-cv">Télécharger le CV</button>';
-      if (app.cv_original_name) html += ' <span style="font-size:12px;color:var(--text-muted)">' + escapeHtml(app.cv_original_name) + '</span>';
+      html += '<div style="margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
+      html += '<button class="btn btn-sm btn-primary" data-action="view-cv">Voir le CV</button>';
+      html += '<button class="btn btn-sm btn-secondary" data-action="download-cv">Télécharger</button>';
+      if (app.cv_original_name) html += '<span style="font-size:12px;color:var(--text-muted)">' + escapeHtml(app.cv_original_name) + '</span>';
       html += '</div>';
 
       html += '<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">';
@@ -380,11 +463,142 @@
       currentAppId = null;
     }
 
-    async function downloadCV() {
-      var res = await fetchAPI('/api/admin/applications/' + currentAppId + '/cv');
-      var data = await res.json();
-      if (data.url) window.open(data.url, '_blank');
+    async function downloadCV(appId) {
+      var id = appId || currentAppId;
+      if (!id) return;
+      try {
+        var res = await fetchAPI('/api/admin/applications/' + id + '/cv?download=1');
+        var data = await res.json();
+        if (data.url) {
+          // Trigger download via a temporary anchor so the attachment disposition applies
+          var a = document.createElement('a');
+          a.href = data.url;
+          a.rel = 'noopener';
+          if (data.filename) a.download = data.filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+      } catch (err) {
+        console.error('CV download error:', err);
+        alert('Impossible de télécharger le CV.');
+      }
     }
+
+    // --- CV viewer (full-screen overlay) ---
+    var viewerIndex = -1;
+
+    function getViewableApps() {
+      // Viewer walks through the currently loaded list (all formats, Word shows fallback)
+      return applications;
+    }
+
+    async function openViewer(appId) {
+      var list = getViewableApps();
+      var idx = list.findIndex(function(a) { return a.id === appId; });
+      if (idx === -1) return;
+      viewerIndex = idx;
+      document.getElementById('cv-viewer').style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      await loadViewerCurrent();
+    }
+
+    async function loadViewerCurrent() {
+      var list = getViewableApps();
+      var app = list[viewerIndex];
+      if (!app) { closeViewer(); return; }
+
+      // Header
+      var title = (app.civilite ? app.civilite + ' ' : '') + app.prenom + ' ' + app.nom;
+      document.getElementById('cv-viewer-title').textContent = title;
+      document.getElementById('cv-viewer-subtitle').textContent = app.poste_actuel || '';
+      document.getElementById('cv-viewer-counter').textContent = (viewerIndex + 1) + ' / ' + list.length;
+
+      // Navigation buttons state
+      document.getElementById('cv-prev').disabled = (viewerIndex <= 0);
+      document.getElementById('cv-next').disabled = (viewerIndex >= list.length - 1);
+
+      // Reset body state
+      var frame = document.getElementById('cv-viewer-frame');
+      var loading = document.getElementById('cv-viewer-loading');
+      var unsupported = document.getElementById('cv-viewer-unsupported');
+      frame.style.display = 'none';
+      frame.src = 'about:blank';
+      unsupported.style.display = 'none';
+      loading.style.display = 'flex';
+
+      // Fetch presigned URL (inline)
+      try {
+        var res = await fetchAPI('/api/admin/applications/' + app.id + '/cv');
+        var data = await res.json();
+        // Still current?
+        if (list[viewerIndex].id !== app.id) return;
+
+        document.getElementById('cv-viewer-subtitle').textContent =
+          (app.poste_actuel || '') + (data.filename ? ' · ' + data.filename : '');
+
+        if (data.extension === 'pdf') {
+          frame.src = data.url;
+          frame.onload = function() { loading.style.display = 'none'; frame.style.display = 'block'; };
+          // Fallback in case onload doesn't fire quickly
+          setTimeout(function() {
+            if (loading.style.display !== 'none') {
+              loading.style.display = 'none';
+              frame.style.display = 'block';
+            }
+          }, 1500);
+        } else {
+          // Word or unknown — show download fallback
+          loading.style.display = 'none';
+          unsupported.style.display = 'flex';
+        }
+
+        // Mark as viewed (detail route also logs view)
+        fetchAPI('/api/admin/applications/' + app.id).catch(function() {});
+        // Refresh list so the "new" badge disappears
+        loadApplications();
+      } catch (err) {
+        console.error('Load CV error:', err);
+        loading.textContent = 'Erreur lors du chargement du CV.';
+      }
+    }
+
+    function closeViewer() {
+      document.getElementById('cv-viewer').style.display = 'none';
+      document.getElementById('cv-viewer-frame').src = 'about:blank';
+      document.body.style.overflow = '';
+      viewerIndex = -1;
+    }
+
+    function viewerPrev() {
+      if (viewerIndex > 0) { viewerIndex--; loadViewerCurrent(); }
+    }
+
+    function viewerNext() {
+      var list = getViewableApps();
+      if (viewerIndex < list.length - 1) { viewerIndex++; loadViewerCurrent(); }
+    }
+
+    function viewerDownload() {
+      var list = getViewableApps();
+      var app = list[viewerIndex];
+      if (app) downloadCV(app.id);
+    }
+
+    // Viewer controls
+    document.getElementById('cv-close').addEventListener('click', closeViewer);
+    document.getElementById('cv-prev').addEventListener('click', viewerPrev);
+    document.getElementById('cv-next').addEventListener('click', viewerNext);
+    document.getElementById('cv-download').addEventListener('click', viewerDownload);
+    document.getElementById('cv-unsupported-download').addEventListener('click', viewerDownload);
+
+    // Keyboard shortcuts when viewer is open
+    document.addEventListener('keydown', function(e) {
+      if (document.getElementById('cv-viewer').style.display !== 'flex') return;
+      if (e.key === 'Escape') { e.preventDefault(); closeViewer(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); viewerPrev(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); viewerNext(); }
+    });
 
     async function changeStatus(status) {
       var res = await fetchAPI('/api/admin/applications/' + currentAppId + '/status', {
@@ -448,9 +662,13 @@
     document.getElementById('applications-table').addEventListener('click', function(e) {
       var el = e.target.closest('[data-action]');
       if (!el) return;
-      if (el.getAttribute('data-action') === 'open') {
+      var action = el.getAttribute('data-action');
+      if (action === 'open') {
         e.stopPropagation();
         openDetail(el.getAttribute('data-id'));
+      } else if (action === 'download-row') {
+        e.stopPropagation();
+        downloadCV(el.getAttribute('data-id'));
       }
     });
 
@@ -461,6 +679,7 @@
       if (!el) return;
       var action = el.getAttribute('data-action');
       if (action === 'download-cv') downloadCV();
+      if (action === 'view-cv') { var id = currentAppId; closeDetail(); openViewer(id); }
       if (action === 'close-detail') closeDetail();
       if (action === 'status') {
         var st = el.getAttribute('data-status');

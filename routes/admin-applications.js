@@ -182,7 +182,7 @@ router.get('/applications/:id', requireSession, async (req, res) => {
   }
 });
 
-// GET /api/admin/applications/:id/cv — presigned S3 URL for CV download
+// GET /api/admin/applications/:id/cv — presigned S3 URL for CV (inline or download)
 router.get('/applications/:id/cv', requireSession, async (req, res) => {
   try {
     const result = await pool.query(
@@ -194,8 +194,18 @@ router.get('/applications/:id/cv', requireSession, async (req, res) => {
       return res.status(404).json({ error: 'Candidature non trouvée.' });
     }
 
-    const url = await getPresignedCVUrl(result.rows[0].cv_s3_key);
-    return res.json({ url, filename: result.rows[0].cv_original_name });
+    const { cv_s3_key, cv_original_name } = result.rows[0];
+    const disposition = req.query.download === '1' ? 'attachment' : 'inline';
+    const url = await getPresignedCVUrl(cv_s3_key, {
+      disposition,
+      filename: cv_original_name,
+    });
+
+    // Infer file type from original filename for viewer handling
+    const ext = (cv_original_name || '').toLowerCase().match(/\.([a-z0-9]+)$/);
+    const extension = ext ? ext[1] : null;
+
+    return res.json({ url, filename: cv_original_name, extension });
   } catch (err) {
     console.error('CV download error:', err.message);
     return res.status(500).json({ error: 'Une erreur est survenue.' });

@@ -280,3 +280,20 @@
 - Actions disponibles : Marquer contacté, Refuser (avec raison obligatoire)
 - Endpoint `PATCH /api/admin/applications/bulk-status` : mise à jour en lot avec validation des transitions
 - Envoi automatique des emails de refus pour chaque candidature refusée en lot
+
+---
+
+## 2026-04-14
+
+### feat: Visionneuse de CV intégrée dans l'administration
+- Nouveau bouton "Voir le CV" dans la modale détail candidature → ouvre une visionneuse plein écran
+- Prévisualisation PDF native via `<iframe>` (URL S3 présignée avec `ResponseContentDisposition: inline`)
+- Fichiers Word (.doc/.docx) : fallback avec message clair et bouton de téléchargement (non prévisualisables nativement par les navigateurs)
+- Navigation rapide entre candidatures : flèches ← / → au clavier + boutons Précédent/Suivant dans l'en-tête
+- Raccourci Échap pour fermer la visionneuse
+- Compteur de position (ex : `3 / 47`) dans l'en-tête, en-tête affiche nom candidat + poste + nom du fichier CV
+- Bouton téléchargement disponible dans la visionneuse + dans la modale détail + icône téléchargement par ligne dans le tableau des candidatures
+- Marquage automatique "vue" quand la visionneuse charge un CV (badge bleu disparaît)
+- Backend : `GET /api/admin/applications/:id/cv` accepte `?download=1` pour forcer `Content-Disposition: attachment`, sinon `inline` pour prévisualisation ; retourne également l'extension détectée (pour que le client choisisse entre iframe et fallback)
+- `services/s3.js` : `getPresignedCVUrl(key, { disposition, filename })` ajoute `ResponseContentDisposition` à l'URL présignée
+- `server.js` : ajout de `frameSrc: ["'self'", "https://*.amazonaws.com"]` à la CSP Helmet pour autoriser l'iframe vers le bucket S3
