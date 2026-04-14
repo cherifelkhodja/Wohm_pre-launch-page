@@ -306,3 +306,14 @@
 ### fix: Durcissements visionneuse CV (audit pré-merge main)
 - `services/s3.js` : encodage RFC 5987 (`filename*=UTF-8''...` + fallback ASCII via `filename="..."`) dans `ResponseContentDisposition` pour supporter les noms de fichiers non-ASCII (ex : `CV_Mélanie.pdf`)
 - `admin/applications.html` : le visionnage d'un CV ne déclenche plus `loadApplications()` (reload complet de la liste) — mise à jour locale du flag `is_new` + `renderApplications()` pour éviter les dérives d'index pendant la navigation rapide prev/next
+
+### refactor: Visionneuse CV intégrée dans la modale candidature (plus d'overlay plein écran)
+- Suppression de l'overlay plein écran `#cv-viewer` — le CV est maintenant affiché **dans la modale candidature** en side-by-side
+- Nouvelle structure modale : en-tête (nom candidat + contrôles navigation), corps en 2 colonnes (infos à gauche `440px` fixe, CV à droite flex), pied de page (actions)
+- Modale agrandie à `max-width: 1200px` / `height: 85vh`
+- Responsive : sur mobile (<960 px), les colonnes se superposent verticalement (infos en haut, CV en dessous)
+- Navigation prev/next entre candidatures directement dans l'en-tête de la modale (flèches ← / → au clavier + boutons) — met à jour infos ET CV sans rouvrir la modale
+- Suppression du bouton "Voir le CV" (CV toujours visible) ; bouton "Télécharger le CV" conservé dans le panneau infos
+- Bouton de fermeture `×` ajouté dans l'en-tête (en plus du bouton "Fermer" du pied de page)
+- Raccourcis clavier : Échap pour fermer, ← / → pour navigation — désactivés dans les champs de saisie (ne pas interférer avec les notes)
+- Fichiers Word : fallback avec message + bouton téléchargement, affiché dans le panneau CV
