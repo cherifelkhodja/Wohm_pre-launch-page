@@ -297,3 +297,8 @@
 - Backend : `GET /api/admin/applications/:id/cv` accepte `?download=1` pour forcer `Content-Disposition: attachment`, sinon `inline` pour prévisualisation ; retourne également l'extension détectée (pour que le client choisisse entre iframe et fallback)
 - `services/s3.js` : `getPresignedCVUrl(key, { disposition, filename })` ajoute `ResponseContentDisposition` à l'URL présignée
 - `server.js` : ajout de `frameSrc: ["'self'", "https://*.amazonaws.com"]` à la CSP Helmet pour autoriser l'iframe vers le bucket S3
+
+### fix: Invitation admin échouait toujours avec "Les mots de passe ne correspondent pas"
+- Le backend (`routes/admin-invites.js`) exige `password_confirm` dans le body POST `/api/admin/setup/:token`
+- Le frontend (`admin/setup.html`) validait bien l'égalité côté client mais n'envoyait pas `password_confirm` → rejet systématique côté serveur
+- Fix : ajout du champ `password_confirm` dans la requête POST
