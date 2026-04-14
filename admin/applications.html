@@ -553,10 +553,13 @@
           unsupported.style.display = 'flex';
         }
 
-        // Mark as viewed (detail route also logs view)
+        // Mark as viewed server-side (GET /:id performs an UPSERT on application_views)
         fetchAPI('/api/admin/applications/' + app.id).catch(function() {});
-        // Refresh list so the "new" badge disappears
-        loadApplications();
+        // Update local state so the "new" badge disappears without reshuffling the list
+        if (app.is_new) {
+          app.is_new = false;
+          renderApplications();
+        }
       } catch (err) {
         console.error('Load CV error:', err);
         loading.textContent = 'Erreur lors du chargement du CV.';

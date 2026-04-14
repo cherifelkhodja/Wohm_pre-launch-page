@@ -38,8 +38,12 @@ async function getPresignedCVUrl(key, options = {}) {
     Key: key,
   };
   if (options.disposition) {
-    const safeName = (options.filename || 'cv').replace(/[\r\n"]/g, '');
-    params.ResponseContentDisposition = `${options.disposition}; filename="${safeName}"`;
+    const original = options.filename || 'cv';
+    // RFC 5987: ASCII-only fallback + UTF-8 encoded filename*
+    const asciiFallback = original.replace(/[^\x20-\x7E]/g, '_').replace(/["\\]/g, '');
+    const encoded = encodeURIComponent(original);
+    params.ResponseContentDisposition =
+      `${options.disposition}; filename="${asciiFallback}"; filename*=UTF-8''${encoded}`;
   }
   const command = new GetObjectCommand(params);
   return getSignedUrl(s3, command, { expiresIn: 900 }); // 15 minutes
