@@ -17,6 +17,7 @@
         <select id="filter-status" class="btn btn-secondary" style="cursor:pointer">
           <option value="">Tous les statuts</option>
           <option value="new">Nouveau</option>
+          <option value="a_contacter">À contacter</option>
           <option value="contacte">Contacté</option>
           <option value="entretien">Entretien</option>
           <option value="valide">Validé</option>
@@ -34,7 +35,7 @@
       <span id="bulk-count" style="font-weight:600;color:var(--blue)">0 sélectionnées</span>
       <select id="bulk-action" class="btn btn-sm btn-secondary">
         <option value="">Action groupée...</option>
-        <option value="contacte">Marquer contacté</option>
+        <option value="a_contacter">À contacter</option>
         <option value="refuse">Refuser</option>
       </select>
       <button class="btn btn-sm btn-primary" id="btn-bulk-apply">Appliquer</button>
@@ -222,7 +223,7 @@
       tbody.innerHTML = applications.map(function(a) {
         var newBadge = a.is_new ? '<span class="badge-new"></span>' : '';
         return '<tr style="cursor:pointer" data-action="open" data-id="' + a.id + '">' +
-          '<td onclick="event.stopPropagation()"><input type="checkbox" class="app-checkbox" data-id="' + a.id + '" data-status="' + a.status + '"></td>' +
+          '<td class="app-checkbox-cell" onclick="event.stopPropagation()"><input type="checkbox" class="app-checkbox" data-id="' + a.id + '" data-status="' + a.status + '"></td>' +
           '<td>' + newBadge + '</td>' +
           '<td><strong>' + escapeHtml(a.prenom) + ' ' + escapeHtml(a.nom) + '</strong><br><span style="font-size:12px;color:var(--text-muted)">' + escapeHtml(a.email) + '</span></td>' +
           '<td>' + escapeHtml(a.poste_actuel) + '</td>' +
@@ -401,7 +402,8 @@
 
       // Status transition buttons
       var transitions = {
-        'new': [{ status: 'contacte', label: 'Marquer contacté', cls: 'btn-secondary' }, { status: 'refuse', label: 'Refuser', cls: 'btn-danger' }],
+        'new': [{ status: 'a_contacter', label: 'À contacter', cls: 'btn-primary' }, { status: 'refuse', label: 'Refuser', cls: 'btn-danger' }],
+        'a_contacter': [{ status: 'contacte', label: 'Marquer contacté', cls: 'btn-secondary' }, { status: 'refuse', label: 'Refuser', cls: 'btn-danger' }],
         'contacte': [{ status: 'entretien', label: 'Planifier entretien', cls: 'btn-secondary' }, { status: 'refuse', label: 'Refuser', cls: 'btn-danger' }],
         'entretien': [{ status: 'valide', label: 'Valider', cls: 'btn-primary' }, { status: 'refuse', label: 'Refuser', cls: 'btn-danger' }],
         'valide': [],
@@ -642,6 +644,8 @@
 
     // Event delegation: applications table
     document.getElementById('applications-table').addEventListener('click', function(e) {
+      // Don't open the detail when clicking the selection checkbox (or its label/cell)
+      if (e.target.classList.contains('app-checkbox') || e.target.closest('.app-checkbox-cell')) return;
       var el = e.target.closest('[data-action]');
       if (!el) return;
       var action = el.getAttribute('data-action');

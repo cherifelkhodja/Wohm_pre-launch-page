@@ -9,7 +9,8 @@ const adminLimiter = createRateLimiter(10, 60000);
 
 // Valid status transitions
 const VALID_TRANSITIONS = {
-  'new': ['contacte', 'refuse'],
+  'new': ['a_contacter', 'refuse'],
+  'a_contacter': ['contacte', 'refuse'],
   'contacte': ['entretien', 'refuse'],
   'entretien': ['valide', 'refuse'],
   'valide': [],
@@ -27,7 +28,7 @@ function csvEscape(val) {
 }
 
 var statutProLabels = { 'salarie': 'Salarié', 'stagiaire': 'Stagiaire', 'alternant': 'Alternant' };
-var statusLabels = { 'new': 'Nouveau', 'contacte': 'Contacté', 'entretien': 'Entretien', 'valide': 'Validé', 'refuse': 'Refusé' };
+var statusLabels = { 'new': 'Nouveau', 'a_contacter': 'À contacter', 'contacte': 'Contacté', 'entretien': 'Entretien', 'valide': 'Validé', 'refuse': 'Refusé' };
 
 // GET /api/admin/applications/export — export all applications as CSV
 router.get('/applications/export', adminLimiter, requireSession, async (req, res) => {

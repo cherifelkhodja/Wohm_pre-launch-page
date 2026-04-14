@@ -323,3 +323,19 @@
 - Bouton de fermeture `×` ajouté dans l'en-tête (en plus du bouton "Fermer" du pied de page)
 - Raccourcis clavier : Échap pour fermer, ← / → pour navigation — désactivés dans les champs de saisie (ne pas interférer avec les notes)
 - Fichiers Word : fallback avec message + bouton téléchargement, affiché dans le panneau CV
+
+### fix: Clic sur la case à cocher d'une candidature ouvrait la modale de détail
+- Ajout d'une classe `.app-checkbox-cell` sur le `<td>` de la checkbox et d'un garde dans le handler de délégation du tableau (`if (e.target.closest('.app-checkbox-cell')) return;`)
+- Le `stopPropagation` inline restait en place en défense en profondeur, mais le garde explicite supprime le bug de manière robuste
+
+### feat: Nouveau statut "À contacter" avant "Contacté" dans le workflow des candidatures
+- Nouveau statut `a_contacter` inséré entre `new` et `contacte` dans le workflow
+- Transitions : `new → a_contacter → contacte → entretien → valide` (refus toujours possible depuis chaque étape active)
+- Backend (`routes/admin-applications.js`) : mise à jour de `VALID_TRANSITIONS` + `statusLabels` (export CSV)
+- Frontend (`admin/applications.html`) :
+  - Bouton "À contacter" (primary) dans la modale détail pour une candidature "Nouveau"
+  - Bouton "Marquer contacté" dans la modale pour une candidature "À contacter"
+  - Option "À contacter" dans le filtre de statut de la page candidatures
+  - Action groupée "À contacter" remplace "Marquer contacté" (le bulk ne s'applique qu'aux candidatures "Nouveau")
+- `admin/shared.js` : badge "À contacter" avec couleur violette `#8B5CF6`
+- Aucune migration BDD requise (colonne `status` VARCHAR(20), nouvelle valeur validée côté serveur)
