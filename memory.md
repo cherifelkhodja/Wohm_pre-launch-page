@@ -302,3 +302,7 @@
 - Le backend (`routes/admin-invites.js`) exige `password_confirm` dans le body POST `/api/admin/setup/:token`
 - Le frontend (`admin/setup.html`) validait bien l'égalité côté client mais n'envoyait pas `password_confirm` → rejet systématique côté serveur
 - Fix : ajout du champ `password_confirm` dans la requête POST
+
+### fix: Durcissements visionneuse CV (audit pré-merge main)
+- `services/s3.js` : encodage RFC 5987 (`filename*=UTF-8''...` + fallback ASCII via `filename="..."`) dans `ResponseContentDisposition` pour supporter les noms de fichiers non-ASCII (ex : `CV_Mélanie.pdf`)
+- `admin/applications.html` : le visionnage d'un CV ne déclenche plus `loadApplications()` (reload complet de la liste) — mise à jour locale du flag `is_new` + `renderApplications()` pour éviter les dérives d'index pendant la navigation rapide prev/next
