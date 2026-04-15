@@ -339,3 +339,19 @@
   - Action groupée "À contacter" remplace "Marquer contacté" (le bulk ne s'applique qu'aux candidatures "Nouveau")
 - `admin/shared.js` : badge "À contacter" avec couleur violette `#8B5CF6`
 - Aucune migration BDD requise (colonne `status` VARCHAR(20), nouvelle valeur validée côté serveur)
+
+---
+
+## 2026-04-15
+
+### remove: Allègement de l'UI (mention diagnostic, toggle thème, lien retour)
+- `public/index.html` : suppression de la mention « et bénéficier d'un diagnostic offert lors du lancement » dans le sous-titre du CTA. Le texte devient simplement « Inscrivez-vous pour être informé de notre ouverture. »
+- `public/index.html` : suppression complète du bouton de bascule de thème (HTML, CSS `.theme-toggle` + media query mobile, script JS d'initialisation et toggle). Les règles `html.light` restent en place mais sont désormais inactives faute de déclencheur (pourront être nettoyées ultérieurement si besoin).
+- `public/jobs.html` : suppression du lien « ← Retour au site » (et du CSS `.back-link` associé) en haut de la page des offres d'emploi. Les liens de navigation entre offres et formulaire de candidature sont conservés.
+- Raison : simplification visuelle demandée pour la landing et la page emploi.
+
+### feat: Redirection de la racine `/` vers la page emploi `/jobs.html`
+- `server.js` : ajout d'un handler `app.get('/')` qui renvoie un `res.redirect(302, '/jobs.html')`, placé avant `express.static` pour court-circuiter le service automatique de `public/index.html`. Le tracking de visite sur `/` (middleware en amont) reste actif.
+- Code 302 (temporaire) volontaire pour permettre une bascule simple si la landing redevient la page d'accueil. La landing `public/index.html` reste accessible via son URL directe `/index.html`.
+- `sitemap.xml` non modifié pour l'instant (à réviser si la redirection devient permanente).
+- Raison : pivot du site vers la page « offres d'emploi » comme entrée principale.

@@ -121,32 +121,6 @@ html.light .form-success{
 html.light footer{color:rgba(71,85,105,0.4)}
 html.light footer a{color:rgba(71,85,105,0.5)}
 html.light footer a:hover{color:rgba(71,85,105,0.7)}
-/* ====== THEME TOGGLE ====== */
-.theme-toggle{
-  position:fixed;top:24px;right:24px;z-index:100;
-  width:44px;height:44px;
-  border:1px solid rgba(148,163,184,0.15);
-  border-radius:50%;
-  background:rgba(255,255,255,0.03);
-  backdrop-filter:blur(8px);
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:background 0.3s, border-color 0.3s, transform 0.2s;
-  color:var(--silver);font-size:18px;
-  padding:0;line-height:1;
-}
-.theme-toggle:hover{
-  background:rgba(255,255,255,0.08);
-  border-color:rgba(148,163,184,0.3);
-  transform:scale(1.05);
-}
-html.light .theme-toggle{
-  background:rgba(0,0,0,0.03);
-  border-color:rgba(71,85,105,0.15);
-}
-html.light .theme-toggle:hover{
-  background:rgba(0,0,0,0.06);
-  border-color:rgba(71,85,105,0.3);
-}
 html{scroll-behavior:smooth;overflow-x:hidden}
 body{
   background:var(--deep);
@@ -450,7 +424,6 @@ footer a:hover{
   .form-row{flex-direction:column}
   .email-field input{padding:16px;font-size:15px}
   .submit-btn{padding:16px;font-size:18px}
-  .theme-toggle{top:16px;right:16px;width:38px;height:38px;font-size:16px}
 }
 /* ====== SCROLL REVEAL GENERIC ====== */
 .sr{opacity:0;transform:translateY(30px);transition:opacity 0.8s ease,transform 0.8s ease}
@@ -591,10 +564,6 @@ html.light .key-figure:hover{
 </style>
 </head>
 <body>
-<!-- Theme toggle -->
-<button class="theme-toggle" id="theme-toggle" aria-label="Changer de thème">
-  <span id="theme-icon">☀️</span>
-</button>
 <!-- ========== BEAT 1 : HERO ========== -->
 <section class="hero">
   <div class="hero-bg"></div>
@@ -699,7 +668,7 @@ html.light .key-figure:hover{
     </div>
   </div>
   <h2 class="cta-headline" data-sr>La réparation des voitures électriques<br><span class="cta-highlight">va changer.</span></h2>
-  <p class="cta-sub" data-sr>Inscrivez-vous pour être informé de notre ouverture et bénéficier d'un <strong style="color:var(--white);font-weight:500">diagnostic offert</strong> lors du lancement.</p>
+  <p class="cta-sub" data-sr>Inscrivez-vous pour être informé de notre ouverture.</p>
   <div class="email-form" id="email-form" data-sr role="form" aria-label="Formulaire d'inscription à la liste d'attente WOHM">
     <div class="form-row">
       <div class="email-field">
@@ -722,30 +691,6 @@ html.light .key-figure:hover{
 <footer>
   &copy; 2026 WOHM SAS — <a href="mailto:contact@wohm.fr">contact@wohm.fr</a>
 </footer>
-<script>
-// ===== THEME TOGGLE =====
-(function() {
-  var toggle = document.getElementById('theme-toggle');
-  var icon = document.getElementById('theme-icon');
-  var logo = document.getElementById('logo-img');
-  if (!toggle || !icon) return;
-  var stored = localStorage.getItem('theme');
-  if (stored === 'light' || (!stored && window.matchMedia('(prefers-color-scheme: light)').matches)) {
-    document.documentElement.classList.add('light');
-  }
-  function updateUI() {
-    var isLight = document.documentElement.classList.contains('light');
-    icon.textContent = isLight ? '\u{1F319}' : '\u{2600}\uFE0F';
-    if (logo) logo.src = isLight ? '/assets/Wohm%20-%20Light.png' : '/assets/Wohm%20-%20Dark.png';
-  }
-  updateUI();
-  toggle.addEventListener('click', function() {
-    document.documentElement.classList.toggle('light');
-    localStorage.setItem('theme', document.documentElement.classList.contains('light') ? 'light' : 'dark');
-    updateUI();
-  });
-})();
-</script>
 <script>
 // ===== COUNTDOWN =====
 function updateCountdown() {

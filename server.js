@@ -115,6 +115,11 @@ app.use('/admin', (req, res, next) => {
   next();
 }, express.static(path.join(__dirname, 'admin')));
 
+// --- Redirect root to jobs page ---
+app.get('/', (req, res) => {
+  res.redirect(302, '/jobs.html');
+});
+
 // --- Static files (public) ---
 app.use(express.static(path.join(__dirname, 'public')));
 
