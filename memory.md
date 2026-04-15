@@ -349,3 +349,9 @@
 - `public/index.html` : suppression complète du bouton de bascule de thème (HTML, CSS `.theme-toggle` + media query mobile, script JS d'initialisation et toggle). Les règles `html.light` restent en place mais sont désormais inactives faute de déclencheur (pourront être nettoyées ultérieurement si besoin).
 - `public/jobs.html` : suppression du lien « ← Retour au site » (et du CSS `.back-link` associé) en haut de la page des offres d'emploi. Les liens de navigation entre offres et formulaire de candidature sont conservés.
 - Raison : simplification visuelle demandée pour la landing et la page emploi.
+
+### feat: Redirection de la racine `/` vers la page emploi `/jobs.html`
+- `server.js` : ajout d'un handler `app.get('/')` qui renvoie un `res.redirect(302, '/jobs.html')`, placé avant `express.static` pour court-circuiter le service automatique de `public/index.html`. Le tracking de visite sur `/` (middleware en amont) reste actif.
+- Code 302 (temporaire) volontaire pour permettre une bascule simple si la landing redevient la page d'accueil. La landing `public/index.html` reste accessible via son URL directe `/index.html`.
+- `sitemap.xml` non modifié pour l'instant (à réviser si la redirection devient permanente).
+- Raison : pivot du site vers la page « offres d'emploi » comme entrée principale.
