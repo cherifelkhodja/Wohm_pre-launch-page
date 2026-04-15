@@ -339,3 +339,13 @@
   - Action groupée "À contacter" remplace "Marquer contacté" (le bulk ne s'applique qu'aux candidatures "Nouveau")
 - `admin/shared.js` : badge "À contacter" avec couleur violette `#8B5CF6`
 - Aucune migration BDD requise (colonne `status` VARCHAR(20), nouvelle valeur validée côté serveur)
+
+---
+
+## 2026-04-15
+
+### remove: Allègement de l'UI (mention diagnostic, toggle thème, lien retour)
+- `public/index.html` : suppression de la mention « et bénéficier d'un diagnostic offert lors du lancement » dans le sous-titre du CTA. Le texte devient simplement « Inscrivez-vous pour être informé de notre ouverture. »
+- `public/index.html` : suppression complète du bouton de bascule de thème (HTML, CSS `.theme-toggle` + media query mobile, script JS d'initialisation et toggle). Les règles `html.light` restent en place mais sont désormais inactives faute de déclencheur (pourront être nettoyées ultérieurement si besoin).
+- `public/jobs.html` : suppression du lien « ← Retour au site » (et du CSS `.back-link` associé) en haut de la page des offres d'emploi. Les liens de navigation entre offres et formulaire de candidature sont conservés.
+- Raison : simplification visuelle demandée pour la landing et la page emploi.
