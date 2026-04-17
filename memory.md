@@ -360,3 +360,7 @@
 - `public/jobs.html` : remplacement des trois mentions visibles de la marque « WOHM » par « EV Clinic » — balise `<title>`, meta description, et phrase d'accroche « Rejoignez l'aventure … ».
 - URL canonique (`https://wohm.fr/jobs`) conservée : il s'agit du domaine technique, non d'une mention de marque visible.
 - Raison : démarche de rebranding en cours côté front. Périmètre strict limité à `jobs.html` tant que le changement de marque n'est pas validé sur le reste du site.
+
+### chore: Précision de la marque « EV Clinic » → « EV Clinic Paris »
+- `public/jobs.html` : les trois mentions « EV Clinic » deviennent « EV Clinic Paris » (title, meta description, phrase d'accroche).
+- Raison : ajout du rattachement géographique dans le nom de marque affiché sur la page offres d'emploi.
