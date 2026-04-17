@@ -355,3 +355,8 @@
 - Code 302 (temporaire) volontaire pour permettre une bascule simple si la landing redevient la page d'accueil. La landing `public/index.html` reste accessible via son URL directe `/index.html`.
 - `sitemap.xml` non modifié pour l'instant (à réviser si la redirection devient permanente).
 - Raison : pivot du site vers la page « offres d'emploi » comme entrée principale.
+
+### chore: Rebranding « WOHM » → « EV Clinic » sur la page offres d'emploi
+- `public/jobs.html` : remplacement des trois mentions visibles de la marque « WOHM » par « EV Clinic » — balise `<title>`, meta description, et phrase d'accroche « Rejoignez l'aventure … ».
+- URL canonique (`https://wohm.fr/jobs`) conservée : il s'agit du domaine technique, non d'une mention de marque visible.
+- Raison : démarche de rebranding en cours côté front. Périmètre strict limité à `jobs.html` tant que le changement de marque n'est pas validé sur le reste du site.
