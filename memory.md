@@ -364,3 +364,20 @@
 ### chore: Précision de la marque « EV Clinic » → « EV Clinic Paris »
 - `public/jobs.html` : les trois mentions « EV Clinic » deviennent « EV Clinic Paris » (title, meta description, phrase d'accroche).
 - Raison : ajout du rattachement géographique dans le nom de marque affiché sur la page offres d'emploi.
+
+---
+
+## 2026-04-28
+
+### feat: Pagination « Charger plus » + téléchargement groupé des CV (admin candidatures)
+- `routes/admin-applications.js` :
+  - `GET /api/admin/applications` : changement du format de réponse, retourne désormais `{ items, hasMore, limit, offset }` au lieu d'un tableau brut. Le SQL fait `LIMIT limit + 1` pour détecter la présence d'une page suivante sans requête de comptage séparée.
+  - Nouvelle route `POST /api/admin/applications/bulk-cv` : reçoit `{ ids: [] }`, streame un ZIP des CV correspondants (max 100). Nommage : `Prenom_Nom.ext` (sanitisé, déduplication automatique en cas de collision).
+- `services/s3.js` : nouveau helper `getCVStream(key)` qui retourne le stream `Body` du `GetObjectCommand` S3, utilisé pour piper directement les CV dans l'archive ZIP sans buffering complet en mémoire.
+- `package.json` : ajout de la dépendance `archiver@^7.0.1` pour la génération du ZIP en streaming.
+- `admin/applications.html` :
+  - UI « Charger plus » : nouveau bouton et compteur (« X candidatures affichées (plus disponibles) ») sous le tableau, masqué quand `hasMore` est `false`. Page de 50 candidatures par requête.
+  - `loadApplications()` réinitialise l'offset, `loadMoreApplications()` append les nouvelles lignes sans casser la sélection ni la navigation prev/next du modal détail.
+  - Préservation de la sélection (cases à cocher) lors des re-render, indispensable pour ne pas perdre les sélections après un « Charger plus ».
+  - Nouveau bouton « Télécharger les CV (ZIP) » dans la barre d'actions groupées : POST vers `/api/admin/applications/bulk-cv`, télécharge le ZIP côté client via `Blob` + `URL.createObjectURL`.
+- Raison : avant ce changement, seules les 50 candidatures les plus récentes étaient visibles dans l'admin (le frontend ne passait jamais `limit`/`offset`, alors que le backend supportait déjà la pagination). Demande utilisateur d'ajouter aussi le téléchargement groupé des CV pour faciliter le tri RH.

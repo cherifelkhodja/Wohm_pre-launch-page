@@ -1,8 +1,9 @@
 const { Router } = require('express');
+const archiver = require('archiver');
 const { pool } = require('../db');
 const { requireSession } = require('../middleware/auth');
 const { createRateLimiter } = require('../middleware/rate-limiter');
-const { getPresignedCVUrl } = require('../services/s3');
+const { getPresignedCVUrl, getCVStream } = require('../services/s3');
 
 const router = Router();
 const adminLimiter = createRateLimiter(10, 60000);
@@ -109,10 +110,10 @@ router.get('/applications', requireSession, async (req, res) => {
 
     const whereClause = where.length > 0 ? 'WHERE ' + where.join(' AND ') : '';
 
-    // Append pagination params after all filters
+    // Fetch limit+1 to detect if more rows exist beyond the requested page
     const limitIdx = paramIdx++;
     const offsetIdx = paramIdx++;
-    params.push(limit, offset);
+    params.push(limit + 1, offset);
 
     const result = await pool.query(`
       SELECT a.id, a.civilite, a.prenom, a.nom, a.email, a.telephone,
@@ -128,7 +129,9 @@ router.get('/applications', requireSession, async (req, res) => {
       LIMIT $${limitIdx} OFFSET $${offsetIdx}
     `, params);
 
-    return res.json(result.rows);
+    const hasMore = result.rows.length > limit;
+    const items = hasMore ? result.rows.slice(0, limit) : result.rows;
+    return res.json({ items: items, hasMore: hasMore, limit: limit, offset: offset });
   } catch (err) {
     console.error('List applications error:', err.message);
     return res.status(500).json({ error: 'Une erreur est survenue.' });
@@ -209,6 +212,80 @@ router.get('/applications/:id/cv', requireSession, async (req, res) => {
   } catch (err) {
     console.error('CV download error:', err.message);
     return res.status(500).json({ error: 'Une erreur est survenue.' });
+  }
+});
+
+// POST /api/admin/applications/bulk-cv — stream a ZIP archive of selected CVs
+router.post('/applications/bulk-cv', adminLimiter, requireSession, async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'La liste des IDs est requise.' });
+    }
+    if (ids.length > 100) {
+      return res.status(400).json({ error: 'Maximum 100 CV par téléchargement.' });
+    }
+
+    const placeholders = ids.map(function(_, i) { return '$' + (i + 1); }).join(', ');
+    const result = await pool.query(
+      'SELECT id, prenom, nom, cv_s3_key, cv_original_name FROM applications WHERE id IN (' + placeholders + ')',
+      ids
+    );
+
+    const rows = result.rows.filter(function(r) { return r.cv_s3_key; });
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Aucun CV disponible pour les candidatures sélectionnées.' });
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename="cvs-' + today + '.zip"');
+
+    const archive = archiver('zip', { zlib: { level: 6 } });
+    archive.on('warning', function(err) { console.warn('Archive warning:', err.message); });
+    archive.on('error', function(err) {
+      console.error('Archive error:', err.message);
+      try { res.end(); } catch (_) {}
+    });
+    archive.pipe(res);
+
+    const usedNames = new Map();
+    function uniqueName(base, ext) {
+      const candidate = base + ext;
+      const count = usedNames.get(candidate) || 0;
+      usedNames.set(candidate, count + 1);
+      return count === 0 ? candidate : base + '_' + (count + 1) + ext;
+    }
+
+    function sanitize(s) {
+      return String(s || '')
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-zA-Z0-9_-]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+    }
+
+    for (const row of rows) {
+      try {
+        const stream = await getCVStream(row.cv_s3_key);
+        const extMatch = (row.cv_original_name || row.cv_s3_key || '').toLowerCase().match(/\.([a-z0-9]+)$/);
+        const ext = extMatch ? '.' + extMatch[1] : '';
+        const base = sanitize(row.prenom) + '_' + sanitize(row.nom);
+        const name = uniqueName(base || ('cv_' + row.id), ext);
+        archive.append(stream, { name: name });
+      } catch (err) {
+        console.error('Skip CV ' + row.id + ':', err.message);
+      }
+    }
+
+    await archive.finalize();
+  } catch (err) {
+    console.error('Bulk CV download error:', err.message);
+    if (!res.headersSent) {
+      return res.status(500).json({ error: 'Une erreur est survenue.' });
+    }
+    try { res.end(); } catch (_) {}
   }
 });
 

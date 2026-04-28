@@ -31,7 +31,7 @@
       </div>
     </div>
 
-    <div id="bulk-bar" style="display:none;padding:12px 16px;background:#2EA3E010;border:1px solid var(--blue);border-radius:8px;margin-bottom:12px;align-items:center;gap:12px;">
+    <div id="bulk-bar" style="display:none;padding:12px 16px;background:#2EA3E010;border:1px solid var(--blue);border-radius:8px;margin-bottom:12px;align-items:center;gap:12px;flex-wrap:wrap;">
       <span id="bulk-count" style="font-weight:600;color:var(--blue)">0 sélectionnées</span>
       <select id="bulk-action" class="btn btn-sm btn-secondary">
         <option value="">Action groupée...</option>
@@ -39,7 +39,8 @@
         <option value="refuse">Refuser</option>
       </select>
       <button class="btn btn-sm btn-primary" id="btn-bulk-apply">Appliquer</button>
-      <button class="btn btn-sm btn-secondary" id="btn-bulk-cancel">Annuler</button>
+      <button class="btn btn-sm btn-secondary" id="btn-bulk-download-cv">Télécharger les CV (ZIP)</button>
+      <button class="btn btn-sm btn-secondary" id="btn-bulk-cancel" style="margin-left:auto">Annuler</button>
     </div>
 
     <div class="card">
@@ -60,6 +61,10 @@
       </table>
       <div id="empty-state" class="empty-state" style="display:none">
         Aucune candidature pour le moment.
+      </div>
+      <div id="pagination-footer" style="display:none;padding:16px;border-top:1px solid var(--border);align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <span id="pagination-info" style="font-size:13px;color:var(--text-muted)"></span>
+        <button class="btn btn-secondary" id="btn-load-more">Charger plus</button>
       </div>
     </div>
   </div>
@@ -168,6 +173,10 @@
 
     var applications = [];
     var currentAppId = null;
+    var PAGE_SIZE = 50;
+    var currentOffset = 0;
+    var hasMoreApplications = false;
+    var loadingMore = false;
 
     async function loadJobFilter() {
       try {
@@ -190,19 +199,69 @@
       } catch (err) { console.error('Load job filter error:', err); }
     }
 
+    function buildListParams(offset) {
+      var status = document.getElementById('filter-status').value;
+      var jobId = document.getElementById('filter-job').value;
+      var params = new URLSearchParams();
+      if (status) params.set('status', status);
+      if (jobId === 'spontanee') params.set('spontaneous', '1');
+      else if (jobId) params.set('job_id', jobId);
+      params.set('limit', String(PAGE_SIZE));
+      params.set('offset', String(offset));
+      return params;
+    }
+
     async function loadApplications() {
       try {
-        var status = document.getElementById('filter-status').value;
-        var jobId = document.getElementById('filter-job').value;
-        var params = new URLSearchParams();
-        if (status) params.set('status', status);
-        if (jobId === 'spontanee') params.set('spontaneous', '1');
-        else if (jobId) params.set('job_id', jobId);
-
+        currentOffset = 0;
+        var params = buildListParams(0);
         var res = await fetchAPI('/api/admin/applications?' + params.toString());
-        applications = await res.json();
+        var data = await res.json();
+        applications = data.items || [];
+        hasMoreApplications = !!data.hasMore;
+        currentOffset = applications.length;
         renderApplications();
+        updatePaginationFooter();
       } catch (err) { console.error('Load applications error:', err); }
+    }
+
+    async function loadMoreApplications() {
+      if (loadingMore || !hasMoreApplications) return;
+      loadingMore = true;
+      var btn = document.getElementById('btn-load-more');
+      btn.disabled = true;
+      btn.textContent = 'Chargement…';
+      try {
+        var params = buildListParams(currentOffset);
+        var res = await fetchAPI('/api/admin/applications?' + params.toString());
+        var data = await res.json();
+        var newItems = data.items || [];
+        applications = applications.concat(newItems);
+        hasMoreApplications = !!data.hasMore;
+        currentOffset = applications.length;
+        renderApplications();
+        updatePaginationFooter();
+      } catch (err) {
+        console.error('Load more error:', err);
+        alert('Erreur lors du chargement.');
+      } finally {
+        loadingMore = false;
+        btn.disabled = false;
+        btn.textContent = 'Charger plus';
+      }
+    }
+
+    function updatePaginationFooter() {
+      var footer = document.getElementById('pagination-footer');
+      var info = document.getElementById('pagination-info');
+      var btn = document.getElementById('btn-load-more');
+      if (applications.length === 0) {
+        footer.style.display = 'none';
+        return;
+      }
+      footer.style.display = 'flex';
+      info.textContent = applications.length + ' candidature' + (applications.length > 1 ? 's' : '') + ' affichée' + (applications.length > 1 ? 's' : '') + (hasMoreApplications ? ' (plus disponibles)' : '');
+      btn.style.display = hasMoreApplications ? 'inline-flex' : 'none';
     }
 
     var statutProLabels = { 'salarie': 'Salarié', 'stagiaire': 'Stagiaire', 'alternant': 'Alternant' };
@@ -213,6 +272,12 @@
       var tbody = document.getElementById('applications-table');
       var empty = document.getElementById('empty-state');
 
+      // Preserve current selection across re-render
+      var selectedBefore = {};
+      document.querySelectorAll('.app-checkbox:checked').forEach(function(cb) {
+        selectedBefore[cb.getAttribute('data-id')] = true;
+      });
+
       if (applications.length === 0) {
         tbody.innerHTML = '';
         empty.style.display = 'block';
@@ -222,8 +287,9 @@
 
       tbody.innerHTML = applications.map(function(a) {
         var newBadge = a.is_new ? '<span class="badge-new"></span>' : '';
+        var checkedAttr = selectedBefore[a.id] ? ' checked' : '';
         return '<tr style="cursor:pointer" data-action="open" data-id="' + a.id + '">' +
-          '<td class="app-checkbox-cell" onclick="event.stopPropagation()"><input type="checkbox" class="app-checkbox" data-id="' + a.id + '" data-status="' + a.status + '"></td>' +
+          '<td class="app-checkbox-cell" onclick="event.stopPropagation()"><input type="checkbox" class="app-checkbox" data-id="' + a.id + '" data-status="' + a.status + '"' + checkedAttr + '></td>' +
           '<td>' + newBadge + '</td>' +
           '<td><strong>' + escapeHtml(a.prenom) + ' ' + escapeHtml(a.nom) + '</strong><br><span style="font-size:12px;color:var(--text-muted)">' + escapeHtml(a.email) + '</span></td>' +
           '<td>' + escapeHtml(a.poste_actuel) + '</td>' +
@@ -238,8 +304,10 @@
           '</td>' +
         '</tr>';
       }).join('');
-      // Reset bulk selection state after re-render
-      document.getElementById('select-all').checked = false;
+      // Sync select-all state with current selection
+      var allCb = document.querySelectorAll('.app-checkbox');
+      var checkedCb = document.querySelectorAll('.app-checkbox:checked');
+      document.getElementById('select-all').checked = allCb.length > 0 && allCb.length === checkedCb.length;
       updateBulkBar();
     }
 
@@ -683,6 +751,48 @@
     // Filters
     document.getElementById('filter-status').addEventListener('change', loadApplications);
     document.getElementById('filter-job').addEventListener('change', loadApplications);
+
+    // Load more pagination
+    document.getElementById('btn-load-more').addEventListener('click', loadMoreApplications);
+
+    // Bulk CV download (ZIP)
+    document.getElementById('btn-bulk-download-cv').addEventListener('click', async function() {
+      var ids = getSelectedIds();
+      if (ids.length === 0) {
+        alert('Aucune candidature sélectionnée.');
+        return;
+      }
+      var btn = this;
+      btn.disabled = true;
+      var originalText = btn.textContent;
+      btn.textContent = 'Préparation…';
+      try {
+        var res = await fetchAPI('/api/admin/applications/bulk-cv', {
+          method: 'POST',
+          body: { ids: ids },
+        });
+        if (!res.ok) {
+          var data = await res.json().catch(function() { return {}; });
+          alert(data.error || 'Erreur lors de la génération du ZIP.');
+          return;
+        }
+        var blob = await res.blob();
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'cvs-' + new Date().toISOString().slice(0, 10) + '.zip';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+      } catch (err) {
+        console.error('Bulk CV download error:', err);
+        alert('Erreur lors du téléchargement.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    });
 
     loadJobFilter();
     loadApplications();

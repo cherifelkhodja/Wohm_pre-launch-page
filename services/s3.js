@@ -49,6 +49,15 @@ async function getPresignedCVUrl(key, options = {}) {
   return getSignedUrl(s3, command, { expiresIn: 900 }); // 15 minutes
 }
 
+async function getCVStream(key) {
+  const s3 = getS3Client();
+  const response = await s3.send(new GetObjectCommand({
+    Bucket: getBucket(),
+    Key: key,
+  }));
+  return response.Body;
+}
+
 async function moveCV(oldKey, newKey) {
   const s3 = getS3Client();
   const bucket = getBucket();
@@ -64,4 +73,4 @@ async function moveCV(oldKey, newKey) {
   return newKey;
 }
 
-module.exports = { uploadCV, getPresignedCVUrl, moveCV };
+module.exports = { uploadCV, getPresignedCVUrl, getCVStream, moveCV };
