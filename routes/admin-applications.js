@@ -138,6 +138,43 @@ router.get('/applications', requireSession, async (req, res) => {
   }
 });
 
+// GET /api/admin/applications/count — total applications matching optional filters
+router.get('/applications/count', adminLimiter, requireSession, async (req, res) => {
+  try {
+    const { status, job_id, spontaneous, from, to } = req.query;
+
+    let where = [];
+    let params = [];
+    let paramIdx = 1;
+
+    if (status) {
+      where.push(`status = $${paramIdx++}`);
+      params.push(status);
+    }
+    if (spontaneous === '1') {
+      where.push('job_posting_id IS NULL');
+    } else if (job_id) {
+      where.push(`job_posting_id = $${paramIdx++}`);
+      params.push(job_id);
+    }
+    if (from) {
+      where.push(`created_at >= $${paramIdx++}`);
+      params.push(from);
+    }
+    if (to) {
+      where.push(`created_at < ($${paramIdx++}::date + interval '1 day')`);
+      params.push(to);
+    }
+
+    const whereClause = where.length > 0 ? 'WHERE ' + where.join(' AND ') : '';
+    const result = await pool.query(`SELECT COUNT(*)::int AS count FROM applications ${whereClause}`, params);
+    return res.json({ count: result.rows[0].count });
+  } catch (err) {
+    console.error('Count applications error:', err.message);
+    return res.status(500).json({ error: 'Une erreur est survenue.' });
+  }
+});
+
 // GET /api/admin/applications/new-count — count unseen applications
 router.get('/applications/new-count', requireSession, async (req, res) => {
   try {

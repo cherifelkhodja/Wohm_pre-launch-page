@@ -381,3 +381,11 @@
   - Préservation de la sélection (cases à cocher) lors des re-render, indispensable pour ne pas perdre les sélections après un « Charger plus ».
   - Nouveau bouton « Télécharger les CV (ZIP) » dans la barre d'actions groupées : POST vers `/api/admin/applications/bulk-cv`, télécharge le ZIP côté client via `Blob` + `URL.createObjectURL`.
 - Raison : avant ce changement, seules les 50 candidatures les plus récentes étaient visibles dans l'admin (le frontend ne passait jamais `limit`/`offset`, alors que le backend supportait déjà la pagination). Demande utilisateur d'ajouter aussi le téléchargement groupé des CV pour faciliter le tri RH.
+
+### fix: Compteur « Candidatures » du dashboard plafonné à 50 + adaptation au nouveau format
+- `routes/admin-applications.js` : nouvelle route `GET /api/admin/applications/count` (filtres `status`, `job_id`, `spontaneous`, `from`, `to`) qui retourne `{ count }`. Déclarée avant `/applications/:id` pour ne pas être interceptée par la route paramétrée.
+- `admin/index.html` :
+  - Le compteur « Candidatures » utilise désormais `/api/admin/applications/count` au lieu de compter les éléments d'une liste tronquée à 50.
+  - L'appel à `/api/admin/applications` passe à `?limit=5` (uniquement pour les 5 dernières affichées dans le tableau « Dernières candidatures »).
+  - Adaptation à la nouvelle réponse `{ items, hasMore }` du endpoint liste — fallback préservant la compatibilité avec un tableau brut au cas où.
+- Raison : le bug était double — (1) le compteur dashboard affichait au max 50 même quand il y avait plus de candidatures, et (2) le changement de format de la liste (commit précédent de pagination) cassait le rendu du dashboard. Repéré par l'utilisateur via screenshot du dashboard montrant « 50 Candidatures ».

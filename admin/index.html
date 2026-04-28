@@ -183,31 +183,36 @@
 
     function loadDashboardStats() {
       var qs = buildDateQS();
-      var appsQS = qs ? qs + '&limit=50' : '?limit=50';
+      var recentQS = qs ? qs + '&limit=5' : '?limit=5';
 
       // Load stats in parallel
       Promise.all([
         fetchAPI('/api/admin/subscribers/count' + qs).then(function(r) { return r.json(); }),
         fetchAPI('/api/admin/visits/count' + qs).then(function(r) { return r.json(); }),
         fetchAPI('/api/admin/applications/new-count').then(function(r) { return r.json(); }),
-        fetchAPI('/api/admin/applications' + appsQS).then(function(r) { return r.json(); }),
+        fetchAPI('/api/admin/applications/count' + qs).then(function(r) { return r.json(); }),
+        fetchAPI('/api/admin/applications' + recentQS).then(function(r) { return r.json(); }),
         fetchAPI('/api/admin/jobs').then(function(r) { return r.json(); }),
       ]).then(function(results) {
         var subs = results[0];
         var visits = results[1];
         var newCount = results[2];
-        var apps = results[3];
-        var jobs = results[4];
+        var appsCount = results[3];
+        var apps = results[4];
+        var jobs = results[5];
+
+        // The applications endpoint now returns { items, hasMore, ... }
+        var items = (apps && apps.items) ? apps.items : (Array.isArray(apps) ? apps : []);
 
         document.getElementById('stat-subscribers').textContent = subs.count;
         document.getElementById('stat-visits').textContent = visits.total;
         document.getElementById('stat-unique').textContent = visits.unique_ips;
-        document.getElementById('stat-applications').textContent = apps.length;
+        document.getElementById('stat-applications').textContent = appsCount.count;
         document.getElementById('stat-new-applications').textContent = newCount.count;
         document.getElementById('stat-jobs').textContent = jobs.filter(function(j) { return !j.is_archived; }).length;
 
         // Recent applications (last 5)
-        var recent = apps.slice(0, 5);
+        var recent = items.slice(0, 5);
         var tbody = document.getElementById('recent-applications');
         var noApps = document.getElementById('no-applications');
 
