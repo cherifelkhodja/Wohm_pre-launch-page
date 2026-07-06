@@ -5,6 +5,15 @@
 
 ---
 
+## 2026-07-06
+
+### feat: Ajout des images de logo dans public/signatures
+- Création du dossier `public/signatures`
+- Ajout de `wohm-omega.png` (icône Ω bleue) et `wohm-wordmark.png` (logo WΩHM complet)
+- Contexte : mise à disposition des logos pour les signatures
+
+---
+
 ## 2026-03-23
 
 ### feat: Initialisation du site pré-lancement
