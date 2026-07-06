@@ -9,7 +9,7 @@
 
 ### feat: Ajout des images de logo dans public/signatures
 - Création du dossier `public/signatures`
-- Ajout de `wohm-omega.png` (icône Ω bleue) et `wohm-wordmark.png` (logo WΩHM complet)
+- Ajout de `signature-icon.png` (icône Ω bleue) et `signature-logo.png` (logo WΩHM complet)
 - Contexte : mise à disposition des logos pour les signatures
 
 ---
